@@ -4,8 +4,18 @@
 #include "ofxDatGui.h"
 #include "ofxNetwork.h"
 
-class ofApp : public ofBaseApp{
 
+typedef struct
+{
+    int                 id;
+    string              name;
+    string              ip;
+    ofxDatGuiToggle*    toggle;
+} slaveInfo;
+
+
+class ofApp : public ofBaseApp
+{
 	public:
         void setup();
         void draw();
@@ -26,10 +36,9 @@ class ofApp : public ofBaseApp{
         void onMatrixEvent(ofxDatGuiMatrixEvent e);
     
     // GUI
-    ofxDatGui* guiSlaves;
-    ofxDatGui* guiMaster;
-    ofxDatGuiFolder* slavesListFolder;
-    vector<ofxDatGuiToggle> slavesList;
+    ofxDatGui*              guiSlaves;
+    ofxDatGui*              guiMaster;
+    ofxDatGuiFolder*        slavesListFolder;
     
     // TCP
     int                 tcpPort;

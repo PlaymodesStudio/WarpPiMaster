@@ -62,9 +62,11 @@ void ofApp::setup()
     tcpLock.lock();
     if(true)
     {
+        cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << endl;
         isTcpConnected = tcpServer.setup(tcpPort);
         if (isTcpConnected) cout << "TCP Server Setup. Port : " << tcpPort << endl;
         else cout << "TCP Server Setup. Port : " << tcpPort << " ERROR on setup !!" << endl;
+        cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << endl;
     }
     tcpLock.unlock();
 
@@ -72,18 +74,23 @@ void ofApp::setup()
     
     // GUI MASTER
     ///////////////
-    
+    // as we moved from ofxDatGui to ofxDatGui_PM
+    ofxDatGui::setAssetPath("");
+
     guiMaster = new ofxDatGui();
+    
     guiMaster->addHeader("WARPI MASTER");
-    ofxDatGuiToggle* t = guiMaster->addToggle("TCP Connected");
-    t->setEnabled(isTcpConnected);
+    
     
     string myIP = "127.127.127.127";
+    guiMaster->addToggle("TCP Connected",isTcpConnected);
     guiMaster->addLabel(myIP);
     guiMaster->addTextInput("TCP Port")->setText(ofToString(tcpPort));
     guiMaster->setPosition(10, 10);
+    guiMaster->addButton("Reset TCP Connection");
     
-    
+    guiMaster->onButtonEvent(this, &ofApp::onButtonEvent);
+
     // GUI SLAVE
     ///////////////
     
@@ -93,32 +100,45 @@ void ofApp::setup()
 
     // adding the optional header allows you to drag the gui around //
     guiSlaves->addHeader("SLAVES");
-    guiSlaves->addButton("Ping Slaves");
-    
-    // add a folder to group a few components together //
-    guiSlaves->addBreak();
-   
-    slavesListFolder = new ofxDatGuiFolder("Slaves List", ofColor::red);
-    guiSlaves->addFolder(slavesListFolder);
 
     //slavesListFolder = guiSlaves->addFolder("Slaves List", ofColor::red);
     
-    for(int i=0;i<6;i++)
-    {
-        ofxDatGuiToggle* t = new ofxDatGuiToggle("ID_" +ofToString(i),true);
-        slavesListFolder->addToggle(t->getLabel(),t->getEnabled());
-        //slavesList.push_back(*t);
-    }
+    guiSlaves->addButton("Test")->setStripe(ofColor(0,164,220), 5);
+    guiSlaves->addButton("Debug")->setStripe(ofColor(0,164,220), 5);;
+    guiSlaves->addButton("Reboot")->setStripe(ofColor(0,164,220), 5);;
+    guiSlaves->addButton("Shutdown")->setStripe(ofColor(0,164,220), 5);;
+    guiSlaves->addButton("Exit")->setStripe(ofColor(0,164,220), 5);;
+    guiSlaves->addButton("Select All")->setStripe(ofColor(0,255,64), 5);
+    guiSlaves->addButton("Select None")->setStripe(ofColor(0,255,64), 5);
+    guiSlaves->addButton("PING ?")->setStripe(ofColor(255,255,0), 5);
+    // add a folder to group a few components together //
     guiSlaves->addBreak();
-    slavesListFolder->expand();
+    slavesListFolder = new ofxDatGuiFolder("Slaves List", ofColor::red);
+    slavesListFolder->setStripe(ofColor(255,0,0), 5);
+    
+    if(false)
+    {
+        for(int i=0;i<6;i++)
+        {
+            // to slave info
+            slaveInfo s;
+            s.id = i;
+            s.name = "Pi_" + ofToString(i);
+            s.ip = "192.168.0." + ofToString(i+101);
+    
+            // to the gui
+            ofxDatGuiToggle* tog = new ofxDatGuiToggle(ofToString(s.id) + " " +s.name + " " + s.ip,true);
+            slavesListFolder->addToggle(tog->getLabel(),tog->getEnabled());
+    
+            // add toggle to slave info
+            s.toggle = tog;
+        }
+        guiSlaves->addBreak();
+        slavesListFolder->expand();
+    }
+    
+    guiSlaves->addFolder(slavesListFolder);
 
-    guiSlaves->addButton("Select All");
-    guiSlaves->addButton("Select None");
-    guiSlaves->addButton("Test");
-    guiSlaves->addButton("Debug");
-    guiSlaves->addButton("Reboot");
-    guiSlaves->addButton("Shutdown");
-    guiSlaves->addButton("Exit");
     
     // once the gui has been assembled, register callbacks to listen for component specific events //
    guiSlaves->onButtonEvent(this, &ofApp::onButtonEvent);
@@ -153,8 +173,28 @@ void ofApp::draw()
 //--------------------------------------------------------------
 void ofApp::exit()
 {
-    tcpServer.close();
-    cout << "Closing Tcp Server on exit !!" << endl;
+    cout << "Trying to close TCP Server on exit() !!" << endl;
+
+    tcpLock.lock();
+    
+    if(tcpServer.disconnectAllClients())
+    {
+        if(tcpServer.close())
+        {
+            cout << "TCP Closed and All Clients Disconnected !! " << endl;
+        }
+        else
+        {
+            cout << "Couldn't Close TCP Connection" << endl;
+        }
+    }
+    else
+    {
+        cout << "Couldn't Disconect All clients !! ERROR " << endl;
+    }
+
+    tcpLock.unlock();
+    
 }
 
 //-------------------------------------------------------------------------------
@@ -169,16 +209,16 @@ void ofApp::onButtonEvent(ofxDatGuiButtonEvent e)
 {
     cout << "onButtonEvent: " << e.target->getLabel() << " " << e.target->getEnabled() << endl;
     
-    if(e.target->is("Ping Slaves"))
+    if(e.target->is("PING ?"))
     {
         string messageTcp = "all ping";
         sendTcpMessageToAll(messageTcp);
         cout << "Sending PING to ALL clients" << endl;
         
-        slavesListFolder->collapse();
-        slavesList.clear();
+        //slavesListFolder->collapse();
         slavesListFolder->clear();
-        slavesListFolder->collapse();
+        
+        guiSlaves->setPosition(guiSlaves->getPosition().x,guiSlaves->getPosition().y);
 
     }
     else if(e.target->is("Select All"))
@@ -186,29 +226,162 @@ void ofApp::onButtonEvent(ofxDatGuiButtonEvent e)
         int num = slavesListFolder->size();
         for(int i=0;i<num;i++)
         {
-            //ofxDatGuiFolder slavesListFolder->getInstance()
+            ofxDatGuiToggle* t = slavesListFolder->getToggleAt(i);
+            t->setEnabled(true);
         }
     }
     else if(e.target->is("Select None"))
     {
+        int num = slavesListFolder->size();
+        for(int i=0;i<num;i++)
+        {
+            ofxDatGuiToggle* t = slavesListFolder->getToggleAt(i);
+            t->setEnabled(false);
+        }
         
     }
     else if(e.target->is("Test"))
     {
+        int num = slavesListFolder->size();
+        for(int i=0;i<num;i++)
+        {
+            ofxDatGuiToggle* t = slavesListFolder->getToggleAt(i);
+            string whichIdString = ofSplitString(t->getLabel()," ")[0];
+            int whichId = ofToInt(whichIdString);
+            string messageTcp = ofToString(whichId) + " test";
+            if(t->getEnabled())
+            {
+                messageTcp=messageTcp + " 1";
+            }
+            else
+            {
+                messageTcp=messageTcp + " 0";
+            }
+            sendTcpMessageToAll(messageTcp);
+        }
+
         
+    }
+    else if(e.target->is("Debug"))
+    {
+        int num = slavesListFolder->size();
+        for(int i=0;i<num;i++)
+        {
+            ofxDatGuiToggle* t = slavesListFolder->getToggleAt(i);
+            string whichIdString = ofSplitString(t->getLabel()," ")[0];
+            int whichId = ofToInt(whichIdString);
+            string messageTcp = ofToString(whichId) + " debug";
+            if(t->getEnabled())
+            {
+                messageTcp=messageTcp + " 1";
+            }
+            else
+            {
+                messageTcp=messageTcp + " 0";
+            }
+            sendTcpMessageToAll(messageTcp);
+        }
     }
     else if(e.target->is("Reboot"))
     {
-        
+        int num = slavesListFolder->size();
+        for(int i=0;i<num;i++)
+        {
+            ofxDatGuiToggle* t = slavesListFolder->getToggleAt(i);
+            string whichIdString = ofSplitString(t->getLabel()," ")[0];
+            int whichId = ofToInt(whichIdString);
+            string messageTcp = ofToString(whichId) + " reboot";
+//            if(t->getEnabled())
+//            {
+//                messageTcp=messageTcp + " 1";
+//            }
+//            else
+//            {
+//                messageTcp=messageTcp + " 0";
+//            }
+            sendTcpMessageToAll(messageTcp);
+        }
     }
     else if(e.target->is("Shutdown"))
     {
-        
+        int num = slavesListFolder->size();
+        for(int i=0;i<num;i++)
+        {
+            ofxDatGuiToggle* t = slavesListFolder->getToggleAt(i);
+            string whichIdString = ofSplitString(t->getLabel()," ")[0];
+            int whichId = ofToInt(whichIdString);
+            string messageTcp = ofToString(whichId) + " shutdown";
+//            if(t->getEnabled())
+//            {
+//                messageTcp=messageTcp + " 1";
+//            }
+//            else
+//            {
+//                messageTcp=messageTcp + " 0";
+//            }
+            sendTcpMessageToAll(messageTcp);
+        }
+
     }
     else if(e.target->is("Exit"))
     {
-        
+        int num = slavesListFolder->size();
+        for(int i=0;i<num;i++)
+        {
+            ofxDatGuiToggle* t = slavesListFolder->getToggleAt(i);
+            string whichIdString = ofSplitString(t->getLabel()," ")[0];
+            int whichId = ofToInt(whichIdString);
+            string messageTcp = ofToString(whichId) + " exit";
+//            if(t->getEnabled())
+//            {
+//                messageTcp=messageTcp + " 1";
+//            }
+//            else
+//            {
+//                messageTcp=messageTcp + " 0";
+//            }
+            sendTcpMessageToAll(messageTcp);
+        }
+
     }
+    else if(e.target->is("Reset TCP Connection"))
+    {
+        tcpLock.lock();
+        
+        if(tcpServer.disconnectAllClients())
+        {
+            cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << endl;
+            cout << "TCP Server has disconnected from All Clients ..." << endl;
+            if(tcpServer.close())
+            {
+                cout << "TCP Server has been closed for reset ..." << endl;
+                // CREATE TCP SERVER AGAIN
+                isTcpConnected = tcpServer.setup(tcpPort);
+                if (isTcpConnected)
+                {
+                    cout << "TCP Server Setup. OK!! Port : " << tcpPort << endl;
+                    isTcpConnected = true;
+                    
+                }
+                else cout << "TCP Server reSetup FAIL!! . Port : " << tcpPort<< endl;
+            }
+            else
+            {
+                cout << "Couldn't Close TCP Connection" << endl;
+            }
+        }
+        else
+        {
+            cout << "Couldn't Disconect All clients !! ERROR " << endl;
+        }
+        tcpLock.unlock();
+
+        ofxDatGuiToggle* t = (ofxDatGuiToggle*)guiMaster->getToggle("TCP Connected");
+        cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << endl;
+        t->setEnabled(isTcpConnected);
+    }
+    
+    
 }
 
 //-------------------------------------------------------------------------------
@@ -249,8 +422,6 @@ void ofApp::keyPressed(int key)
     if (key == 'f') {
         toggleFullscreen();
     }
-
-    slavesListFolder->addToggle("KK",true);
 }
 
 //-------------------------------------------------------------------------------
@@ -328,27 +499,31 @@ void ofApp::handleTcpIn()
         
         if(str.length() > 0)
         {
-            string buf; // Have a buffer string
-            stringstream ss(str); // Insert the string into a stream
-            vector<string> tokens; // Create vector to hold our words
-            while (ss >> buf)
-            {
-                tokens.push_back(buf);
-            }
+            
+            vector<string> tokens = ofSplitString(str, " ");
             
             if(tokens[0]=="pong")
             {
+                //slavesListFolder->collapse();
+
                 int theId = ofToInt(tokens[1]);
                 cout << "Hi !! I got a PONG TCP message !! >> " << str <<" <<  from client : " << i << " with ID : " << theId << endl;
-                //tm->setToggle(theId,0,true);
 
-                slavesListFolder->collapse();
-                ofxDatGuiToggle* t = new ofxDatGuiToggle("ID_" +ofToString(theId),true);
-                slavesListFolder->addToggle(t->getLabel(),t->getEnabled());
-                slavesListFolder->expand();
+                // to slave info
+                slaveInfo s;
+                s.id = theId;
+                s.name = "myName?";
+                s.ip = "myIPAddress?";
                 
-                //slavesList.push_back(*t);
+                
+                ofxDatGuiToggle* tog = slavesListFolder->addToggle(ofToString(s.id) + " " +s.name + " " + s.ip,true);
+                tog->setStripe(ofColor(200,0,0), 5);
+                tog->setBackgroundColor(ofColor(32));
+                // stupid hack to
+                guiSlaves->setPosition(guiSlaves->getPosition().x,guiSlaves->getPosition().y);
 
+                s.toggle = tog;
+                slavesListFolder->expand();
             }
         }
         
