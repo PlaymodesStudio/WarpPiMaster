@@ -1,5 +1,13 @@
 #include "ofApp.h"
 
+// IP SHIT
+
+// https://www.google.com/url?q=https%3A%2F%2Fgithub.com%2FPlaymodesStudio%2FofxArtNet_PM%2Fblob%2Fmaster%2Fsrc%2FLocalAddressGrabber.h&sa=D&sntz=1&usg=AFQjCNE3-diuprU7GRR5xGUcSmyf5CTFWw
+
+// https://www.google.com/url?q=https%3A%2F%2Fgithub.com%2FPlaymodesStudio%2FofxArtNet_PM%2Fblob%2Fmaster%2Fsrc%2FofxArtNet.cpp%23L18&sa=D&sntz=1&usg=AFQjCNGsGat2blUS6spgw7sJBUXdQZMU4Q
+
+//
+
 //// http://stackoverflow.com/questions/7072989/iphone-ipad-how-to-get-my-ip-address-programmatically
 //string ofxBonjourIp::GetMyIPAddress()
 //{
@@ -48,17 +56,37 @@
 
 void ofApp::setup()
 {
+    // TCP
+    ///////
+    tcpPort = 11999;
+    tcpLock.lock();
+    if(true)
+    {
+        isTcpConnected = tcpServer.setup(tcpPort);
+        if (isTcpConnected) cout << "TCP Server Setup. Port : " << tcpPort << endl;
+        else cout << "TCP Server Setup. Port : " << tcpPort << " ERROR on setup !!" << endl;
+    }
+    tcpLock.unlock();
+
+    
+    
     // GUI MASTER
     ///////////////
-
+    
     guiMaster = new ofxDatGui();
     guiMaster->addHeader("WARPI MASTER");
+    ofxDatGuiToggle* t = guiMaster->addToggle("TCP Connected");
+    t->setEnabled(isTcpConnected);
+    
     string myIP = "127.127.127.127";
     guiMaster->addLabel(myIP);
+    guiMaster->addTextInput("TCP Port")->setText(ofToString(tcpPort));
     guiMaster->setPosition(10, 10);
-
+    
+    
     // GUI SLAVE
     ///////////////
+    
     // instantiate and position the gui //
     guiSlaves = new ofxDatGui();
     guiSlaves->setPosition(guiMaster->getWidth()+10+10, 10);
@@ -69,13 +97,17 @@ void ofApp::setup()
     
     // add a folder to group a few components together //
     guiSlaves->addBreak();
-    slavesListFolder = guiSlaves->addFolder("Slaves List", ofColor::red);
+   
+    slavesListFolder = new ofxDatGuiFolder("Slaves List", ofColor::red);
+    guiSlaves->addFolder(slavesListFolder);
+
+    //slavesListFolder = guiSlaves->addFolder("Slaves List", ofColor::red);
     
     for(int i=0;i<6;i++)
     {
         ofxDatGuiToggle* t = new ofxDatGuiToggle("ID_" +ofToString(i),true);
         slavesListFolder->addToggle(t->getLabel(),t->getEnabled());
-        slavesList.push_back(*t);
+        //slavesList.push_back(*t);
     }
     guiSlaves->addBreak();
     slavesListFolder->expand();
@@ -83,6 +115,7 @@ void ofApp::setup()
     guiSlaves->addButton("Select All");
     guiSlaves->addButton("Select None");
     guiSlaves->addButton("Test");
+    guiSlaves->addButton("Debug");
     guiSlaves->addButton("Reboot");
     guiSlaves->addButton("Shutdown");
     guiSlaves->addButton("Exit");
@@ -102,6 +135,29 @@ void ofApp::setup()
 }
 
 //-------------------------------------------------------------------------------
+void ofApp::update()
+{
+    // TCP
+    tcpLock.lock();
+    handleTcpIn();
+    handleTcpOut();
+    tcpLock.unlock();
+}
+
+//-------------------------------------------------------------------------------
+void ofApp::draw()
+{
+
+}
+
+//--------------------------------------------------------------
+void ofApp::exit()
+{
+    tcpServer.close();
+    cout << "Closing Tcp Server on exit !!" << endl;
+}
+
+//-------------------------------------------------------------------------------
 void ofApp::onSliderEvent(ofxDatGuiSliderEvent e)
 {
     cout << "onSliderEvent: " << e.target->getLabel() << " "; e.target->printValue();
@@ -115,7 +171,15 @@ void ofApp::onButtonEvent(ofxDatGuiButtonEvent e)
     
     if(e.target->is("Ping Slaves"))
     {
+        string messageTcp = "all ping";
+        sendTcpMessageToAll(messageTcp);
+        cout << "Sending PING to ALL clients" << endl;
         
+        slavesListFolder->collapse();
+        slavesList.clear();
+        slavesListFolder->clear();
+        slavesListFolder->collapse();
+
     }
     else if(e.target->is("Select All"))
     {
@@ -150,39 +214,34 @@ void ofApp::onButtonEvent(ofxDatGuiButtonEvent e)
 //-------------------------------------------------------------------------------
 void ofApp::onTextInputEvent(ofxDatGuiTextInputEvent e)
 {
-//    cout << "onTextInputEvent: " << e.target->getLabel() << " " << e.target->getText() << endl;
+    //    cout << "onTextInputEvent: " << e.target->getLabel() << " " << e.target->getText() << endl;
 }
 
 //-------------------------------------------------------------------------------
 void ofApp::on2dPadEvent(ofxDatGui2dPadEvent e)
 {
-//    cout << "on2dPadEvent: " << e.target->getLabel() << " " << e.x << ":" << e.y << endl;
+    //    cout << "on2dPadEvent: " << e.target->getLabel() << " " << e.x << ":" << e.y << endl;
 }
 
 //-------------------------------------------------------------------------------
 void ofApp::onDropdownEvent(ofxDatGuiDropdownEvent e)
 {
-//    cout << "onDropdownEvent: " << e.target->getLabel() << " Selected" << endl;
+    //    cout << "onDropdownEvent: " << e.target->getLabel() << " Selected" << endl;
 }
 
 //-------------------------------------------------------------------------------
 void ofApp::onColorPickerEvent(ofxDatGuiColorPickerEvent e)
 {
-//    cout << "onColorPickerEvent: " << e.target->getLabel() << " " << e.target->getColor() << endl;
-//    ofSetBackgroundColor(e.color);
+    //    cout << "onColorPickerEvent: " << e.target->getLabel() << " " << e.target->getColor() << endl;
+    //    ofSetBackgroundColor(e.color);
 }
 
 //-------------------------------------------------------------------------------
 void ofApp::onMatrixEvent(ofxDatGuiMatrixEvent e)
 {
-//    cout << "onMatrixEvent " << e.child << " : " << e.enabled << endl;
-//    cout << "onMatrixEvent " << e.target->getLabel() << " : " << e.target->getSelected().size() << endl;
+    //    cout << "onMatrixEvent " << e.child << " : " << e.enabled << endl;
+    //    cout << "onMatrixEvent " << e.target->getLabel() << " : " << e.target->getSelected().size() << endl;
 }
-
-//-------------------------------------------------------------------------------
-void ofApp::draw() { }
-//-------------------------------------------------------------------------------
-void ofApp::update() { }
 
 //-------------------------------------------------------------------------------
 void ofApp::keyPressed(int key)
@@ -190,6 +249,8 @@ void ofApp::keyPressed(int key)
     if (key == 'f') {
         toggleFullscreen();
     }
+
+    slavesListFolder->addToggle("KK",true);
 }
 
 //-------------------------------------------------------------------------------
@@ -203,9 +264,110 @@ void ofApp::toggleFullscreen()
 void ofApp::refreshWindow()
 {
     ofSetFullscreen(mFullscreen);
-    if (!mFullscreen) {
-        ofSetWindowShape(1920, 1400);
-        ofSetWindowPosition((ofGetScreenWidth()/2)-(1920/2), 0);
+//    if (!mFullscreen) {
+//        ofSetWindowShape(1920, 1400);
+//        ofSetWindowPosition((ofGetScreenWidth()/2)-(1920/2), 0);
+//    }
+}
+
+//-------------------------------------------------------------------------------
+// TCP
+//-------------------------------------------------------------------------------
+///--------------------------------------------------------------
+void ofApp::handleTcpOut()
+{
+    
+    if(!tcpServer.isConnected())
+    {
+        return;
+    }
+    
+    
+    int numMessages = 0;
+    
+    /*
+    
+    //any bangs that came our way this frame send them out too
+    for(int i = 0; i < bangsReceived.size(); i++)
+    {
+        cout << "TCP FOUND BANGS! oscAddress : " << bangsReceived[i].getAddress() << " :: " << bangsReceived[i].getArgAsString(0) << endl;
+        string addressWithoutSlash = bangsReceived[i].getAddress().substr(1,bangsReceived[i].getAddress().size()-1);
+        // SPLIT STRING ?
+        string buf; // Have a buffer string
+        stringstream ss(addressWithoutSlash); // Insert the string into a stream
+        vector<string> tokens; // Create vector to hold our words
+        while (ss >> buf)
+        {
+            tokens.push_back(buf);
+        }
+        
+        // send a TCP MESSAGE FOR EVERY ADDRESS ITEM
+        for(int j=0;j<tokens.size();j++)
+        {
+            string messageTcp = tokens[j] + " " + bangsReceived[i].getArgAsString(0);
+            sendTcpMessageToAll(messageTcp);
+        }
+        
+    }
+    */
+}
+
+//-------------------------------------------------------------------------------
+void ofApp::handleTcpIn()
+{
+    if((!tcpServer.isConnected()))
+    {
+        return;
+    }
+    
+    for(int i = 0; i < tcpServer.getLastID(); i++)
+    {
+        if( !tcpServer.isClientConnected(i) ) continue;
+        
+        string str = tcpServer.receive(i);
+        
+        if(str.length() > 0)
+        {
+            string buf; // Have a buffer string
+            stringstream ss(str); // Insert the string into a stream
+            vector<string> tokens; // Create vector to hold our words
+            while (ss >> buf)
+            {
+                tokens.push_back(buf);
+            }
+            
+            if(tokens[0]=="pong")
+            {
+                int theId = ofToInt(tokens[1]);
+                cout << "Hi !! I got a PONG TCP message !! >> " << str <<" <<  from client : " << i << " with ID : " << theId << endl;
+                //tm->setToggle(theId,0,true);
+
+                slavesListFolder->collapse();
+                ofxDatGuiToggle* t = new ofxDatGuiToggle("ID_" +ofToString(theId),true);
+                slavesListFolder->addToggle(t->getLabel(),t->getEnabled());
+                slavesListFolder->expand();
+                
+                //slavesList.push_back(*t);
+
+            }
+        }
+        
+    }
+}
+
+//-------------------------------------------------------------------------------
+void ofApp::sendTcpMessageToAll(string mess)
+{
+    /// SEND TO ALL TCP CLIENTS !!
+    //for each client lets send them a message
+    for(int j = 0; j < tcpServer.getLastID(); j++)
+    {
+        if( !tcpServer.isClientConnected(j) )
+        {
+            continue;
+        }
+        tcpServer.send(j,mess);
+        cout << "TCP Send : " << mess << endl;
     }
 }
 

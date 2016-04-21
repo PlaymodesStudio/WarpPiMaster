@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		D72541D51CC8CBB800430572 /* ofxTCPClient.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D72541CD1CC8CBB800430572 /* ofxTCPClient.cpp */; settings = {ASSET_TAGS = (); }; };
+		D72541D61CC8CBB800430572 /* ofxTCPManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D72541CF1CC8CBB800430572 /* ofxTCPManager.cpp */; settings = {ASSET_TAGS = (); }; };
+		D72541D71CC8CBB800430572 /* ofxTCPServer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D72541D11CC8CBB800430572 /* ofxTCPServer.cpp */; settings = {ASSET_TAGS = (); }; };
+		D72541D81CC8CBB800430572 /* ofxUDPManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D72541D31CC8CBB800430572 /* ofxUDPManager.cpp */; settings = {ASSET_TAGS = (); }; };
 		D7D788971CC83FF6004B9260 /* ofxDatGuiComponent.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D7D788871CC83FF6004B9260 /* ofxDatGuiComponent.cpp */; settings = {ASSET_TAGS = (); }; };
 		D7D788981CC83FF6004B9260 /* ofxSmartFont.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D7D7888F1CC83FF6004B9260 /* ofxSmartFont.cpp */; settings = {ASSET_TAGS = (); }; };
 		D7D788991CC83FF6004B9260 /* ofxDatGui.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D7D788911CC83FF6004B9260 /* ofxDatGui.cpp */; settings = {ASSET_TAGS = (); }; };
@@ -45,6 +49,16 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		D72541CB1CC8CBB800430572 /* ofxNetwork.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ofxNetwork.h; sourceTree = "<group>"; };
+		D72541CC1CC8CBB800430572 /* ofxNetworkUtils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ofxNetworkUtils.h; sourceTree = "<group>"; };
+		D72541CD1CC8CBB800430572 /* ofxTCPClient.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ofxTCPClient.cpp; sourceTree = "<group>"; };
+		D72541CE1CC8CBB800430572 /* ofxTCPClient.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ofxTCPClient.h; sourceTree = "<group>"; };
+		D72541CF1CC8CBB800430572 /* ofxTCPManager.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ofxTCPManager.cpp; sourceTree = "<group>"; };
+		D72541D01CC8CBB800430572 /* ofxTCPManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ofxTCPManager.h; sourceTree = "<group>"; };
+		D72541D11CC8CBB800430572 /* ofxTCPServer.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ofxTCPServer.cpp; sourceTree = "<group>"; };
+		D72541D21CC8CBB800430572 /* ofxTCPServer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ofxTCPServer.h; sourceTree = "<group>"; };
+		D72541D31CC8CBB800430572 /* ofxUDPManager.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ofxUDPManager.cpp; sourceTree = "<group>"; };
+		D72541D41CC8CBB800430572 /* ofxUDPManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ofxUDPManager.h; sourceTree = "<group>"; };
 		D7D788791CC83FF6004B9260 /* ofxDatGui2dPad.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ofxDatGui2dPad.h; sourceTree = "<group>"; };
 		D7D7887A1CC83FF6004B9260 /* ofxDatGuiButton.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ofxDatGuiButton.h; sourceTree = "<group>"; };
 		D7D7887B1CC83FF6004B9260 /* ofxDatGuiColorPicker.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ofxDatGuiColorPicker.h; sourceTree = "<group>"; };
@@ -97,8 +111,35 @@
 			isa = PBXGroup;
 			children = (
 				D7D788761CC83FF6004B9260 /* ofxDatGui */,
+				D72541C91CC8CBB800430572 /* ofxNetwork */,
 			);
 			name = addons;
+			sourceTree = "<group>";
+		};
+		D72541C91CC8CBB800430572 /* ofxNetwork */ = {
+			isa = PBXGroup;
+			children = (
+				D72541CA1CC8CBB800430572 /* src */,
+			);
+			name = ofxNetwork;
+			sourceTree = "<group>";
+		};
+		D72541CA1CC8CBB800430572 /* src */ = {
+			isa = PBXGroup;
+			children = (
+				D72541CB1CC8CBB800430572 /* ofxNetwork.h */,
+				D72541CC1CC8CBB800430572 /* ofxNetworkUtils.h */,
+				D72541CD1CC8CBB800430572 /* ofxTCPClient.cpp */,
+				D72541CE1CC8CBB800430572 /* ofxTCPClient.h */,
+				D72541CF1CC8CBB800430572 /* ofxTCPManager.cpp */,
+				D72541D01CC8CBB800430572 /* ofxTCPManager.h */,
+				D72541D11CC8CBB800430572 /* ofxTCPServer.cpp */,
+				D72541D21CC8CBB800430572 /* ofxTCPServer.h */,
+				D72541D31CC8CBB800430572 /* ofxUDPManager.cpp */,
+				D72541D41CC8CBB800430572 /* ofxUDPManager.h */,
+			);
+			name = src;
+			path = ../../../addons/ofxNetwork/src;
 			sourceTree = "<group>";
 		};
 		D7D788761CC83FF6004B9260 /* ofxDatGui */ = {
@@ -309,9 +350,13 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D72541D61CC8CBB800430572 /* ofxTCPManager.cpp in Sources */,
 				D7D788991CC83FF6004B9260 /* ofxDatGui.cpp in Sources */,
 				D7D788981CC83FF6004B9260 /* ofxSmartFont.cpp in Sources */,
+				D72541D51CC8CBB800430572 /* ofxTCPClient.cpp in Sources */,
+				D72541D71CC8CBB800430572 /* ofxTCPServer.cpp in Sources */,
 				E4B69E200A3A1BDC003C02F2 /* main.cpp in Sources */,
+				D72541D81CC8CBB800430572 /* ofxUDPManager.cpp in Sources */,
 				E4B69E210A3A1BDC003C02F2 /* ofApp.cpp in Sources */,
 				D7D788971CC83FF6004B9260 /* ofxDatGuiComponent.cpp in Sources */,
 			);
