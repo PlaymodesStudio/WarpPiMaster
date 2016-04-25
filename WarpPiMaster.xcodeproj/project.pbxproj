@@ -14,6 +14,10 @@
 		D728F58E1CC9241D00C60AC7 /* ofxDatGuiComponent.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D728F5801CC9241D00C60AC7 /* ofxDatGuiComponent.cpp */; settings = {ASSET_TAGS = (); }; };
 		D728F58F1CC9241D00C60AC7 /* ofxSmartFont.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D728F5871CC9241D00C60AC7 /* ofxSmartFont.cpp */; settings = {ASSET_TAGS = (); }; };
 		D728F5901CC9241D00C60AC7 /* ofxDatGui.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D728F5891CC9241D00C60AC7 /* ofxDatGui.cpp */; settings = {ASSET_TAGS = (); }; };
+		D79EC4A31CCA18E5000A89EB /* ofxXmlSettings.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D79EC49C1CCA18E5000A89EB /* ofxXmlSettings.cpp */; settings = {ASSET_TAGS = (); }; };
+		D79EC4A41CCA18E5000A89EB /* tinyxml.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D79EC49F1CCA18E5000A89EB /* tinyxml.cpp */; settings = {ASSET_TAGS = (); }; };
+		D79EC4A51CCA18E5000A89EB /* tinyxmlerror.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D79EC4A11CCA18E5000A89EB /* tinyxmlerror.cpp */; settings = {ASSET_TAGS = (); }; };
+		D79EC4A61CCA18E5000A89EB /* tinyxmlparser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D79EC4A21CCA18E5000A89EB /* tinyxmlparser.cpp */; settings = {ASSET_TAGS = (); }; };
 		E4328149138ABC9F0047C5CB /* openFrameworksDebug.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E4328148138ABC890047C5CB /* openFrameworksDebug.a */; };
 		E4B69E200A3A1BDC003C02F2 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E4B69E1D0A3A1BDC003C02F2 /* main.cpp */; };
 		E4B69E210A3A1BDC003C02F2 /* ofApp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E4B69E1E0A3A1BDC003C02F2 /* ofApp.cpp */; };
@@ -83,6 +87,13 @@
 		D728F58A1CC9241D00C60AC7 /* ofxDatGui.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ofxDatGui.h; sourceTree = "<group>"; };
 		D728F58C1CC9241D00C60AC7 /* ofxDatGuiTheme.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ofxDatGuiTheme.h; sourceTree = "<group>"; };
 		D728F58D1CC9241D00C60AC7 /* ofxDatGuiThemes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ofxDatGuiThemes.h; sourceTree = "<group>"; };
+		D79EC4991CCA165A000A89EB /* LocalAddressGrabber.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LocalAddressGrabber.h; sourceTree = "<group>"; };
+		D79EC49C1CCA18E5000A89EB /* ofxXmlSettings.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ofxXmlSettings.cpp; sourceTree = "<group>"; };
+		D79EC49D1CCA18E5000A89EB /* ofxXmlSettings.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ofxXmlSettings.h; sourceTree = "<group>"; };
+		D79EC49F1CCA18E5000A89EB /* tinyxml.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = tinyxml.cpp; sourceTree = "<group>"; };
+		D79EC4A01CCA18E5000A89EB /* tinyxml.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = tinyxml.h; sourceTree = "<group>"; };
+		D79EC4A11CCA18E5000A89EB /* tinyxmlerror.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = tinyxmlerror.cpp; sourceTree = "<group>"; };
+		D79EC4A21CCA18E5000A89EB /* tinyxmlparser.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = tinyxmlparser.cpp; sourceTree = "<group>"; };
 		E4328143138ABC890047C5CB /* openFrameworksLib.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = openFrameworksLib.xcodeproj; path = ../../../libs/openFrameworksCompiled/project/osx/openFrameworksLib.xcodeproj; sourceTree = SOURCE_ROOT; };
 		E4B69B5B0A3A1756003C02F2 /* WarpPiMasterDebug.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WarpPiMasterDebug.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E4B69E1D0A3A1BDC003C02F2 /* main.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; name = main.cpp; path = src/main.cpp; sourceTree = SOURCE_ROOT; };
@@ -110,6 +121,7 @@
 			children = (
 				D72541C91CC8CBB800430572 /* ofxNetwork */,
 				D728F56F1CC9241D00C60AC7 /* ofxDatGui_PM */,
+				D79EC49A1CCA18E5000A89EB /* ofxXmlSettings */,
 			);
 			name = addons;
 			sourceTree = "<group>";
@@ -220,6 +232,37 @@
 			path = themes;
 			sourceTree = "<group>";
 		};
+		D79EC49A1CCA18E5000A89EB /* ofxXmlSettings */ = {
+			isa = PBXGroup;
+			children = (
+				D79EC49B1CCA18E5000A89EB /* src */,
+				D79EC49E1CCA18E5000A89EB /* libs */,
+			);
+			name = ofxXmlSettings;
+			sourceTree = "<group>";
+		};
+		D79EC49B1CCA18E5000A89EB /* src */ = {
+			isa = PBXGroup;
+			children = (
+				D79EC49C1CCA18E5000A89EB /* ofxXmlSettings.cpp */,
+				D79EC49D1CCA18E5000A89EB /* ofxXmlSettings.h */,
+			);
+			name = src;
+			path = ../../../addons/ofxXmlSettings/src;
+			sourceTree = "<group>";
+		};
+		D79EC49E1CCA18E5000A89EB /* libs */ = {
+			isa = PBXGroup;
+			children = (
+				D79EC49F1CCA18E5000A89EB /* tinyxml.cpp */,
+				D79EC4A01CCA18E5000A89EB /* tinyxml.h */,
+				D79EC4A11CCA18E5000A89EB /* tinyxmlerror.cpp */,
+				D79EC4A21CCA18E5000A89EB /* tinyxmlparser.cpp */,
+			);
+			name = libs;
+			path = ../../../addons/ofxXmlSettings/libs;
+			sourceTree = "<group>";
+		};
 		E4328144138ABC890047C5CB /* Products */ = {
 			isa = PBXGroup;
 			children = (
@@ -243,6 +286,7 @@
 		E4B69E1C0A3A1BDC003C02F2 /* src */ = {
 			isa = PBXGroup;
 			children = (
+				D79EC4991CCA165A000A89EB /* LocalAddressGrabber.h */,
 				E4B69E1D0A3A1BDC003C02F2 /* main.cpp */,
 				E4B69E1E0A3A1BDC003C02F2 /* ofApp.cpp */,
 				E4B69E1F0A3A1BDC003C02F2 /* ofApp.h */,
@@ -346,14 +390,18 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D79EC4A51CCA18E5000A89EB /* tinyxmlerror.cpp in Sources */,
 				D72541D61CC8CBB800430572 /* ofxTCPManager.cpp in Sources */,
 				D72541D51CC8CBB800430572 /* ofxTCPClient.cpp in Sources */,
 				D72541D71CC8CBB800430572 /* ofxTCPServer.cpp in Sources */,
 				E4B69E200A3A1BDC003C02F2 /* main.cpp in Sources */,
 				D728F58F1CC9241D00C60AC7 /* ofxSmartFont.cpp in Sources */,
+				D79EC4A41CCA18E5000A89EB /* tinyxml.cpp in Sources */,
 				D72541D81CC8CBB800430572 /* ofxUDPManager.cpp in Sources */,
+				D79EC4A61CCA18E5000A89EB /* tinyxmlparser.cpp in Sources */,
 				D728F58E1CC9241D00C60AC7 /* ofxDatGuiComponent.cpp in Sources */,
 				E4B69E210A3A1BDC003C02F2 /* ofApp.cpp in Sources */,
+				D79EC4A31CCA18E5000A89EB /* ofxXmlSettings.cpp in Sources */,
 				D728F5901CC9241D00C60AC7 /* ofxDatGui.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

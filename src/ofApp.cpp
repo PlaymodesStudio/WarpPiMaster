@@ -1,96 +1,102 @@
 #include "ofApp.h"
 
-// IP SHIT
 
-// https://www.google.com/url?q=https%3A%2F%2Fgithub.com%2FPlaymodesStudio%2FofxArtNet_PM%2Fblob%2Fmaster%2Fsrc%2FLocalAddressGrabber.h&sa=D&sntz=1&usg=AFQjCNE3-diuprU7GRR5xGUcSmyf5CTFWw
+//-------------------------------------------------------------------------------
+string ofApp::getIP(string device)
+{
+    vector<string> list = LocalAddressGrabber :: availableList();
+    return LocalAddressGrabber :: getIpAddress(device);
+}
 
-// https://www.google.com/url?q=https%3A%2F%2Fgithub.com%2FPlaymodesStudio%2FofxArtNet_PM%2Fblob%2Fmaster%2Fsrc%2FofxArtNet.cpp%23L18&sa=D&sntz=1&usg=AFQjCNGsGat2blUS6spgw7sJBUXdQZMU4Q
 
-//
+//-------------------------------------------------------------------------------
+vector<string> ofApp::getDevicesIPs()
+{
+    vector<string> v = LocalAddressGrabber :: availableList();
+    cout << "....................................." << endl;
+    cout << " ...... NETWORK DEVICES AND IPs" << endl;
+    for(int i=0;i<v.size();i++)
+    {
+        networkIPs.push_back(LocalAddressGrabber :: getIpAddress(v[i]));
+        cout << " ... " << v[i] << " : " << networkIPs[i] << endl;
+    }
+    cout << "....................................." << endl;
+    return v;
+}
 
-//// http://stackoverflow.com/questions/7072989/iphone-ipad-how-to-get-my-ip-address-programmatically
-//string ofxBonjourIp::GetMyIPAddress()
-//{
-//    struct ifaddrs *interfaces = NULL;
-//    struct ifaddrs *temp_addr = NULL;
-//    string networkAddress = "";
-//    string cellAddress = "";
-//    
-//    // retrieve the current interfaces - returns 0 on success
-//    if(!getifaddrs(&interfaces)) {
-//        // Loop through linked list of interfaces
-//        temp_addr = interfaces;
-//        while(temp_addr != NULL) {
-//            sa_family_t sa_type = temp_addr->ifa_addr->sa_family;
-//            if(sa_type == AF_INET || sa_type == AF_INET6) {
-//                string name = temp_addr->ifa_name; //en0
-//                string addr = inet_ntoa(((struct sockaddr_in *)temp_addr->ifa_addr)->sin_addr); // pdp_ip0
-//                
-//                // ignore localhost "lo0" addresses 127.0.0.1, and "0.0.0.0"
-//                //if(!ofIsStringInString(name, "lo") && addr != "0.0.0.0") {
-//                if(addr != "127.0.0.1" && addr != "0.0.0.0") {
-//                    
-//                    // can assume here it's "en0" or "en3" or "wlan0" or "pdp_ip0" (cell address)
-//                    // may need to add in a check to match the name (used to be matched to "en0")
-//                    ofLog() << "interface name / ip address: " << name << " / " << addr;
-//                    if(name == "pdp_ip0") {
-//                        // Interface is the cell connection on the iPhone
-//                        cellAddress = addr;
-//                    } else {
-//                        // if(name == "en0") - ignoring the name as this can be different
-//                        networkAddress = addr;
-//                    }
-//                }
-//                
-//            }
-//            temp_addr = temp_addr->ifa_next;
-//        }
-//        // Free memory
-//        freeifaddrs(interfaces);
-//    }
-//    
-//    // will return 0.0.0.0 of it hasn't found address
-//    string address = (networkAddress != "") ? networkAddress : cellAddress;
-//    return (address != "") ? address : "0.0.0.0";
-//}
+//-------------------------------------------------------------------------------
+vector<string> ofApp::buildDevicesIPsString()
+{
+    vector<string> ndi;
+    for(int i=0;i<networkDevices.size();i++)
+    {
+        ndi.push_back(networkDevices[i] + " : " + networkIPs[i] );
+    }
+    return ndi;
+}
+
+//-------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------
 
 void ofApp::setup()
 {
-    // TCP
-    ///////
-    tcpPort = 11999;
-    tcpLock.lock();
-    if(true)
-    {
-        cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << endl;
-        isTcpConnected = tcpServer.setup(tcpPort);
-        if (isTcpConnected) cout << "TCP Server Setup. Port : " << tcpPort << endl;
-        else cout << "TCP Server Setup. Port : " << tcpPort << " ERROR on setup !!" << endl;
-        cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << endl;
-    }
-    tcpLock.unlock();
-
+    ofSetBackgroundColor(64, 64, 64);
+    deviceSelected = -1;
+    networkDevices       = getDevicesIPs();
+    networkDevicesAndIPs = buildDevicesIPsString();
+    timeLastConnection = ofGetElapsedTimef();
     
+    /// READ CONF
+    readConfig();
     
-    // GUI MASTER
-    ///////////////
+    // DAT GUI
     // as we moved from ofxDatGui to ofxDatGui_PM
     ofxDatGui::setAssetPath("");
 
+    // GUI MASTER
+    ///////////////
     guiMaster = new ofxDatGui();
-    
-    guiMaster->addHeader("WARPI MASTER");
-    
-    
-    string myIP = "127.127.127.127";
+
+    guiMaster->addHeader("WARPI MASTER")->setBackgroundColor(ofColor(127));
     guiMaster->addToggle("TCP Connected",isTcpConnected);
-    guiMaster->addLabel(myIP);
-    guiMaster->addTextInput("TCP Port")->setText(ofToString(tcpPort));
-    guiMaster->setPosition(10, 10);
+    ofxDatGuiTextInput *tcpP = guiMaster->addTextInput("TCP Port");
+    tcpP->setText(ofToString(confTCPPort));
+    tcpP->setStripe(ofColor(0,225,0), 5);
     guiMaster->addButton("Reset TCP Connection");
+
+    guiMaster->addDropdown("NETWORK",networkDevicesAndIPs)->setStripe(ofColor(0,128,255), 5);;
+    
+    // set the dropdown to the device coming from config.xml if exists ... NETWORK instead
+    ofxDatGuiDropdown* dd = (ofxDatGuiDropdown*) guiMaster->getDropdown("NETWORK");
+    dd->setStripe(ofColor(255,255,255),5);
+    int whichOne=-1;
+    for(int i=0;i<networkDevices.size();i++)
+    {
+        if(networkDevices[i]==confNetworkDevice)
+        {
+            // this is the device we got saved in config.xml
+            whichOne=i;
+        }
+    }
+    if(whichOne>-1)
+    {
+        dd->select(whichOne);
+        deviceSelected=whichOne;
+    }
+    guiMaster->addButton("Save Config")->setStripe(ofColor(255,255,255),5);
+    
+    guiMaster->setPosition(10, 10);
     
     guiMaster->onButtonEvent(this, &ofApp::onButtonEvent);
-
+    guiMaster->onDropdownEvent(this, &ofApp::onDropdownEvent);
+    guiMaster->onTextInputEvent(this, &ofApp::onTextInputEvent);
+    
+    // TCP
+    ///////
+    setupTCPConnection(confTCPPort);
+    
+    
     // GUI SLAVE
     ///////////////
     
@@ -99,45 +105,52 @@ void ofApp::setup()
     guiSlaves->setPosition(guiMaster->getWidth()+10+10, 10);
 
     // adding the optional header allows you to drag the gui around //
-    guiSlaves->addHeader("SLAVES");
+    guiSlaves->addHeader("SLAVES")->setBackgroundColor(ofColor(127));
 
     //slavesListFolder = guiSlaves->addFolder("Slaves List", ofColor::red);
     
-    guiSlaves->addButton("Test")->setStripe(ofColor(0,164,220), 5);
-    guiSlaves->addButton("Debug")->setStripe(ofColor(0,164,220), 5);;
-    guiSlaves->addButton("Reboot")->setStripe(ofColor(0,164,220), 5);;
-    guiSlaves->addButton("Shutdown")->setStripe(ofColor(0,164,220), 5);;
-    guiSlaves->addButton("Exit")->setStripe(ofColor(0,164,220), 5);;
-    guiSlaves->addButton("Select All")->setStripe(ofColor(0,255,64), 5);
-    guiSlaves->addButton("Select None")->setStripe(ofColor(0,255,64), 5);
-    guiSlaves->addButton("PING ?")->setStripe(ofColor(255,255,0), 5);
-    // add a folder to group a few components together //
-    guiSlaves->addBreak();
-    slavesListFolder = new ofxDatGuiFolder("Slaves List", ofColor::red);
-    slavesListFolder->setStripe(ofColor(255,0,0), 5);
-    
-    if(false)
+    ofColor c = ofColor(255,255,255);
+    guiSlaves->addButton("Test")->setStripe(c, 5);
+    guiSlaves->addButton("Debug")->setStripe(c, 5);
+    guiSlaves->addButton("Reboot")->setStripe(c, 5);
+    guiSlaves->addButton("Shutdown")->setStripe(c, 5);
+    guiSlaves->addButton("Exit")->setStripe(c, 5);
+    guiSlaves->addButton("Ping all ¿?")->setStripe(c, 5);
+
     {
-        for(int i=0;i<6;i++)
-        {
-            // to slave info
-            slaveInfo s;
-            s.id = i;
-            s.name = "Pi_" + ofToString(i);
-            s.ip = "192.168.0." + ofToString(i+101);
-    
-            // to the gui
-            ofxDatGuiToggle* tog = new ofxDatGuiToggle(ofToString(s.id) + " " +s.name + " " + s.ip,true);
-            slavesListFolder->addToggle(tog->getLabel(),tog->getEnabled());
-    
-            // add toggle to slave info
-            s.toggle = tog;
-        }
+        // add a folder to group a few components together //
         guiSlaves->addBreak();
-        slavesListFolder->expand();
+        ofColor cl = ofColor(0,225,0);
+        slavesListFolder = new ofxDatGuiFolder("Slaves List", cl);
+        slavesListFolder->setStripe(cl, 5);
+        
+        if(false)
+        {
+            for(int i=0;i<6;i++)
+            {
+                // to slave info
+                slaveInfo s;
+                s.id = i;
+                s.name = "Pi_" + ofToString(i);
+                s.ip = "192.168.0." + ofToString(i+101);
+        
+                // to the gui
+                ofxDatGuiToggle* tog = new ofxDatGuiToggle(ofToString(s.id) + " " +s.name + " " + s.ip,true);
+                slavesListFolder->addToggle(tog->getLabel(),tog->getEnabled())->setStripe(cl, 5);
+        
+                // add toggle to slave info
+                s.toggle = tog;
+            }
+            guiSlaves->addBreak();
+            slavesListFolder->expand();
+        }
+        
     }
-    
     guiSlaves->addFolder(slavesListFolder);
+
+    guiSlaves->addButton("Select All")->setStripe(ofColor(255,128,0), 5);
+    guiSlaves->addButton("Select None")->setStripe(ofColor(255,128,0), 5);
+    guiSlaves->addButton("Play")->setStripe(c, 5);
 
     
     // once the gui has been assembled, register callbacks to listen for component specific events //
@@ -162,6 +175,15 @@ void ofApp::update()
     handleTcpIn();
     handleTcpOut();
     tcpLock.unlock();
+    
+    if(!tcpServer.isConnected() && (ofGetElapsedTimef()-timeLastConnection>3.0))
+    {
+        ofxDatGuiTextInput* i = (ofxDatGuiTextInput*) guiMaster->getTextInput("TCP Port");
+        setupTCPConnection(ofToInt(i->getText()));
+        timeLastConnection=ofGetElapsedTimef();
+        
+    }
+    
 }
 
 //-------------------------------------------------------------------------------
@@ -209,7 +231,7 @@ void ofApp::onButtonEvent(ofxDatGuiButtonEvent e)
 {
     cout << "onButtonEvent: " << e.target->getLabel() << " " << e.target->getEnabled() << endl;
     
-    if(e.target->is("PING ?"))
+    if(e.target->is("Ping all ¿?"))
     {
         string messageTcp = "all ping";
         sendTcpMessageToAll(messageTcp);
@@ -344,42 +366,30 @@ void ofApp::onButtonEvent(ofxDatGuiButtonEvent e)
         }
 
     }
+    else if(e.target->is("Play"))
+    {
+        ofxDatGuiToggle* t = slavesListFolder->getToggleAt(0);
+        string whichIdString = ofSplitString(t->getLabel()," ")[0];
+        int whichId = ofToInt(whichIdString);
+
+        sendTcpMessageToAll(ofToString(whichId) + " load Timecoded_Big_bunny_1.mov 2");
+    }
+    else if(e.target->is("Save Config"))
+    {
+        saveConfig();
+    }
+    
+    /// GUI MAIN
+    /////////////
+    
     else if(e.target->is("Reset TCP Connection"))
     {
-        tcpLock.lock();
-        
-        if(tcpServer.disconnectAllClients())
-        {
-            cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << endl;
-            cout << "TCP Server has disconnected from All Clients ..." << endl;
-            if(tcpServer.close())
-            {
-                cout << "TCP Server has been closed for reset ..." << endl;
-                // CREATE TCP SERVER AGAIN
-                isTcpConnected = tcpServer.setup(tcpPort);
-                if (isTcpConnected)
-                {
-                    cout << "TCP Server Setup. OK!! Port : " << tcpPort << endl;
-                    isTcpConnected = true;
-                    
-                }
-                else cout << "TCP Server reSetup FAIL!! . Port : " << tcpPort<< endl;
-            }
-            else
-            {
-                cout << "Couldn't Close TCP Connection" << endl;
-            }
-        }
-        else
-        {
-            cout << "Couldn't Disconect All clients !! ERROR " << endl;
-        }
-        tcpLock.unlock();
-
-        ofxDatGuiToggle* t = (ofxDatGuiToggle*)guiMaster->getToggle("TCP Connected");
-        cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << endl;
-        t->setEnabled(isTcpConnected);
+        ofxDatGuiTextInput* i = (ofxDatGuiTextInput*) guiMaster->getTextInput("TCP Port");
+        resetTCPConnection(ofToInt(i->getText()));
     }
+
+
+    
     
     
 }
@@ -388,6 +398,12 @@ void ofApp::onButtonEvent(ofxDatGuiButtonEvent e)
 void ofApp::onTextInputEvent(ofxDatGuiTextInputEvent e)
 {
     //    cout << "onTextInputEvent: " << e.target->getLabel() << " " << e.target->getText() << endl;
+    if(e.target->is("TCP Port"))
+    {
+        ofxDatGuiTextInput* i = (ofxDatGuiTextInput*) guiMaster->getTextInput("TCP Port");
+        resetTCPConnection(ofToInt(i->getText()));
+    }
+
 }
 
 //-------------------------------------------------------------------------------
@@ -399,7 +415,7 @@ void ofApp::on2dPadEvent(ofxDatGui2dPadEvent e)
 //-------------------------------------------------------------------------------
 void ofApp::onDropdownEvent(ofxDatGuiDropdownEvent e)
 {
-    //    cout << "onDropdownEvent: " << e.target->getLabel() << " Selected" << endl;
+    deviceSelected=e.target->getSelectedIndex();
 }
 
 //-------------------------------------------------------------------------------
@@ -512,8 +528,16 @@ void ofApp::handleTcpIn()
                 // to slave info
                 slaveInfo s;
                 s.id = theId;
-                s.name = "myName?";
-                s.ip = "myIPAddress?";
+                if(tokens.size()>=3)
+                {
+                    s.name = tokens[2];
+                    s.ip = tokens[3];
+                }
+                else
+                {
+                    s.name = "defaultName";
+                    s.ip = "defaultIP";
+                }
                 
                 
                 ofxDatGuiToggle* tog = slavesListFolder->addToggle(ofToString(s.id) + " " +s.name + " " + s.ip,true);
@@ -546,3 +570,121 @@ void ofApp::sendTcpMessageToAll(string mess)
     }
 }
 
+//--------------------------------------------------------------
+void ofApp::saveConfig()
+{
+    cout << "-----------------------------" << endl;
+    cout << "--- Saving to XML Config ---" << endl;
+    
+    ofxXmlSettings configXML;
+    configXML.load("./app/config.xml");
+    configXML.pushTag("config");
+    
+    // Network Device
+    if(deviceSelected!=-1)
+    {
+        configXML.setValue("networkDevice",networkDevices[deviceSelected]);
+    }
+    else
+    {
+        configXML.setValue("networkDevice","?");
+    }
+    cout << "--- Network Device : " << deviceSelected <<" :: "<< networkDevices[deviceSelected] << endl;
+    
+    // TCP Port
+    ofxDatGuiTextInput* tcpP = guiMaster->getTextInput("TCP Port");
+    configXML.setValue("TCPPort",tcpP->getText());
+    cout << "--- TCP Port : " << tcpP->getText() << endl;
+    
+    cout << "-----------------------------" << endl;
+    configXML.save("./app/config.xml");
+    
+}
+//--------------------------------------------------------------
+void ofApp::readConfig()
+{
+    ofxXmlSettings configXML;
+    configXML.load("./app/config.xml");
+    configXML.pushTag("config");
+    
+    /// NETWORK DEVICE
+    confNetworkDevice = configXML.getValue("networkDevice","error");
+    
+    /// TCP SETUP
+    confTCPPort = configXML.getValue("TCPPort",11999);
+    
+    /// add to LOG
+    //ofLog(OF_LOG_NOTICE) << "ofApp :: readConfig :: networkDevice " << confNetworkDevice << " :: TCP Port " << confTCPPort << endl;
+    cout << "ofApp :: readConfig :: networkDevice " << confNetworkDevice << " :: TCP Port " << confTCPPort << endl;
+    
+}
+
+//--------------------------------------------------------------
+void ofApp::setupTCPConnection(int _port)
+{
+    tcpLock.lock();
+
+    ofxDatGuiToggle* t = (ofxDatGuiToggle*)guiMaster->getToggle("TCP Connected");
+    ofxDatGuiButton* r = (ofxDatGuiButton*)guiMaster->getButton("Reset TCP Connection");
+    ofxDatGuiTextInput* i = (ofxDatGuiTextInput*)guiMaster->getTextInput("TCP Port");
+    
+    if(true)
+    {
+        cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << endl;
+        isTcpConnected = tcpServer.setup(_port);
+
+        if (isTcpConnected)
+        {
+            cout << "TCP Server Setup. OK!! Port : " << _port << endl;
+            isTcpConnected = true;
+            t->setStripe(ofColor(0,225,0), 5);
+            r->setStripe(ofColor(0,255,0), 5);
+            i->setStripe(ofColor(0,255,0), 5);
+
+        }
+        else
+        {
+            cout << "TCP Server reSetup FAIL!! . Port : " << _port<< endl;
+            isTcpConnected = false;
+            t->setStripe(ofColor(255,0,0), 5);
+            r->setStripe(ofColor(255,0,0), 5);
+            i->setStripe(ofColor(255,0,0), 5);
+
+        }
+        t->setEnabled(isTcpConnected);
+        cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << endl;
+    }
+    tcpLock.unlock();
+    
+    
+  
+}
+
+//--------------------------------------------------------------
+void ofApp::resetTCPConnection(int _port)
+{
+    tcpLock.lock();
+    
+    if(tcpServer.disconnectAllClients())
+    {
+        cout << "oooooooooooooooooooooooooooooooooooooooooooooooo" << endl;
+        cout << "oo TCP Server has disconnected from All Clients ..." << endl;
+        if(tcpServer.close())
+        {
+            tcpLock.unlock();
+            cout << "oo TCP Server has been closed for reset ..." << endl;
+            setupTCPConnection(_port);
+            tcpLock.lock();
+            
+        }
+        else
+        {
+            cout << "oo Couldn't Close TCP Connection" << endl;
+        }
+    }
+    else
+    {
+        cout << "oo Couldn't Disconect All clients !! ERROR " << endl;
+    }
+    tcpLock.unlock();
+}

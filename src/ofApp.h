@@ -3,7 +3,8 @@
 #include "ofMain.h"
 #include "ofxDatGui.h"
 #include "ofxNetwork.h"
-
+#include "LocalAddressGrabber.h"
+#include "ofxXmlSettings.h"
 
 typedef struct
 {
@@ -41,6 +42,8 @@ class ofApp : public ofBaseApp
     ofxDatGuiFolder*        slavesListFolder;
     
     // TCP
+    void                setupTCPConnection(int port);
+    void                resetTCPConnection(int port);
     int                 tcpPort;
     bool                isTcpConnected;
     ofxTCPServer        tcpServer;
@@ -48,5 +51,21 @@ class ofApp : public ofBaseApp
     void                handleTcpOut();
     void                sendTcpMessageToAll(string mess);
     void                handleTcpIn();
+    float               timeLastConnection;
+
+    // IP
+    vector<string>      getDevicesIPs();
+    vector<string>      buildDevicesIPsString();
+    vector<string>      networkDevices;
+    vector<string>      networkIPs;
+    vector<string>      networkDevicesAndIPs;
+    string              getIP(string device);
+    int                 deviceSelected;
+    
+    /// CONFIG
+    void                        readConfig();
+    void                        saveConfig();
+    string                      confNetworkDevice;
+    int                         confTCPPort;
 
 };
