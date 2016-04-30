@@ -150,6 +150,9 @@ void ofApp::setup()
 
     guiSlaves->addButton("Select All")->setStripe(ofColor(255,128,0), 5);
     guiSlaves->addButton("Select None")->setStripe(ofColor(255,128,0), 5);
+    guiSlaves->addBreak();
+    guiSlaves->addButton("useFbo")->setStripe(c, 5);
+    guiSlaves->addButton("doHomography")->setStripe(c, 5);
     guiSlaves->addButton("Play")->setStripe(c, 5);
 
     
@@ -365,6 +368,54 @@ void ofApp::onButtonEvent(ofxDatGuiButtonEvent e)
             sendTcpMessageToAll(messageTcp);
         }
 
+    }
+    else if(e.target->is("useFbo"))
+    {
+        int num = slavesListFolder->size();
+        for(int i=0;i<num;i++)
+        {
+            ofxDatGuiToggle* t = slavesListFolder->getToggleAt(i);
+            string whichIdString = ofSplitString(t->getLabel()," ")[0];
+            int whichId = ofToInt(whichIdString);
+            string messageTcp = ofToString(whichId) + " fbo";
+            if(t->getEnabled())
+            {
+                messageTcp=messageTcp + " 1";
+            }
+            else
+            {
+                messageTcp=messageTcp + " 0";
+            }
+            sendTcpMessageToAll(messageTcp);
+        }
+    }
+    else if(e.target->is("doHomography"))
+    {
+        int num = slavesListFolder->size();
+        for(int i=0;i<num;i++)
+        {
+            ofxDatGuiToggle* t = slavesListFolder->getToggleAt(i);
+            string whichIdString = ofSplitString(t->getLabel()," ")[0];
+            int whichId = ofToInt(whichIdString);
+            string messageTcp = ofToString(whichId) + " homography";
+            if(t->getEnabled())
+            {
+                messageTcp=messageTcp + " 1";
+            }
+            else
+            {
+                messageTcp=messageTcp + " 0";
+            }
+            sendTcpMessageToAll(messageTcp);
+        }
+    }
+    else if(e.target->is("Play"))
+    {
+        ofxDatGuiToggle* t = slavesListFolder->getToggleAt(0);
+        string whichIdString = ofSplitString(t->getLabel()," ")[0];
+        int whichId = ofToInt(whichIdString);
+        
+        sendTcpMessageToAll(ofToString(whichId) + " load Timecoded_Big_bunny_1.mov 2");
     }
     else if(e.target->is("Play"))
     {
