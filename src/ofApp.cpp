@@ -579,15 +579,15 @@ void ofApp::handleTcpIn()
                 // to slave info
                 slaveInfo s;
                 s.id = theId;
-                if(tokens.size()>=3)
+                if(tokens.size()>=2)
                 {
                     s.name = tokens[2];
-                    s.ip = tokens[3];
+                    s.ip = tcpServer.getClientIP(i);
                 }
                 else
                 {
                     s.name = "defaultName";
-                    s.ip = "defaultIP";
+                    s.ip = tcpServer.getClientIP(i);
                 }
                 
                 
