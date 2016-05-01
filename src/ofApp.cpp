@@ -500,7 +500,10 @@ void ofApp::onImageButtonEvent(ofxDatGuiButtonEvent e)
     }
     else if(e.target->is("stop"))
     {
-        
+        ofxDatGuiToggle* t = slavesListFolder->getToggleAt(0);
+        string whichIdString = ofSplitString(t->getLabel()," ")[0];
+        int whichId = ofToInt(whichIdString);
+        sendTcpMessageToAll(ofToString(whichId) + " loadImage noimage 2");
     }
     else if(e.target->is("load image 1"))
     {
