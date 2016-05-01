@@ -165,6 +165,45 @@ void ofApp::setup()
    guiSlaves->onColorPickerEvent(this, &ofApp::onColorPickerEvent);
    guiSlaves->onMatrixEvent(this, &ofApp::onMatrixEvent);
     
+    // GUI VIDEO
+    //////////////
+    // instantiate and position the gui //
+    guiVideo = new ofxDatGui();
+    guiVideo->setPosition(guiSlaves->getWidth()+guiSlaves->getPosition().x+10, 10);
+    guiVideo->setWidth(200);
+    
+    // adding the optional header allows you to drag the gui around //
+    guiVideo->addHeader("Video Controls")->setBackgroundColor(ofColor(127));
+    
+    //slavesListFolder = guiSlaves->addFolder("Slaves List", ofColor::red);
+    
+    guiVideo->addButton("Play")->setStripe(c, 5);
+    guiVideo->addButton("Pause")->setStripe(c, 5);
+    guiVideo->addButton("Stop")->setStripe(c, 5);
+    guiVideo->addButton("load")->setStripe(c, 5);
+    
+    
+    // GUI IMAGE
+    //////////////
+    // instantiate and position the gui //
+    guiImage = new ofxDatGui();
+    guiImage->setPosition(guiVideo->getWidth()+guiVideo->getPosition().x+10, 10);
+    guiImage->setWidth(200);
+    
+    // adding the optional header allows you to drag the gui around //
+    guiImage->addHeader("Image Controls")->setBackgroundColor(ofColor(127));
+    
+    //slavesListFolder = guiSlaves->addFolder("Slaves List", ofColor::red);
+    
+    guiImage->addButton("Play")->setStripe(c, 5);
+    guiImage->addButton("Pause")->setStripe(c, 5);
+    guiImage->addButton("Stop")->setStripe(c, 5);
+    guiImage->addButton("load image 1")->setStripe(c, 5);
+    guiImage->addButton("load image 2")->setStripe(c, 5);
+    guiImage->addButton("load folder")->setStripe(c, 5);
+    
+    guiImage->onButtonEvent(this, &ofApp::onImageButtonEvent);
+    
     // launch the app //
     mFullscreen = false;
     refreshWindow();
@@ -415,7 +454,8 @@ void ofApp::onButtonEvent(ofxDatGuiButtonEvent e)
         string whichIdString = ofSplitString(t->getLabel()," ")[0];
         int whichId = ofToInt(whichIdString);
         
-        sendTcpMessageToAll(ofToString(whichId) + " load Timecoded_Big_bunny_1.mov 2");
+        //sendTcpMessageToAll(ofToString(whichId) + " load Timecoded_Big_bunny_1.mov 2");
+        sendTcpMessageToAll(ofToString(whichId) + " loadImage test/testImage3.jpg 5");
     }
     else if(e.target->is("Play"))
     {
@@ -423,7 +463,7 @@ void ofApp::onButtonEvent(ofxDatGuiButtonEvent e)
         string whichIdString = ofSplitString(t->getLabel()," ")[0];
         int whichId = ofToInt(whichIdString);
 
-        sendTcpMessageToAll(ofToString(whichId) + " load Timecoded_Big_bunny_1.mov 2");
+        //sendTcpMessageToAll(ofToString(whichId) + " load Timecoded_Big_bunny_1.mov 2");
     }
     else if(e.target->is("Save Config"))
     {
@@ -443,6 +483,47 @@ void ofApp::onButtonEvent(ofxDatGuiButtonEvent e)
     
     
     
+}
+
+//-------------------------------------------------------------------------------
+void ofApp::onImageButtonEvent(ofxDatGuiButtonEvent e)
+{
+    cout << "onImageButtonEvent: " << e.target->getLabel() << " " << e.target->getEnabled() << endl;
+    
+    if(e.target->is("play"))
+    {
+        
+    }
+    else if(e.target->is("pause"))
+    {
+        
+    }
+    else if(e.target->is("stop"))
+    {
+        
+    }
+    else if(e.target->is("load image 1"))
+    {
+        ofxDatGuiToggle* t = slavesListFolder->getToggleAt(0);
+        string whichIdString = ofSplitString(t->getLabel()," ")[0];
+        int whichId = ofToInt(whichIdString);
+        sendTcpMessageToAll(ofToString(whichId) + " loadImage test/testImage1.jpg 5");
+    }
+    else if(e.target->is("load image 2"))
+    {
+        ofxDatGuiToggle* t = slavesListFolder->getToggleAt(0);
+        string whichIdString = ofSplitString(t->getLabel()," ")[0];
+        int whichId = ofToInt(whichIdString);
+        sendTcpMessageToAll(ofToString(whichId) + " loadImage test/testImage2.jpg 2");
+    }
+    else if(e.target->is("load folder"))
+    {
+        ofxDatGuiToggle* t = slavesListFolder->getToggleAt(0);
+        string whichIdString = ofSplitString(t->getLabel()," ")[0];
+        int whichId = ofToInt(whichIdString);
+        sendTcpMessageToAll(ofToString(whichId) + " loadFolder test 2");
+    }
+
 }
 
 //-------------------------------------------------------------------------------
