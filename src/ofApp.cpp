@@ -716,6 +716,9 @@ void ofApp::resetTCPConnection(int _port)
 {
     tcpLock.lock();
     
+    string messageTcp = "all close";
+    sendTcpMessageToAll(messageTcp);
+    sleep(1);
     if(tcpServer.disconnectAllClients())
     {
         cout << "oooooooooooooooooooooooooooooooooooooooooooooooo" << endl;
