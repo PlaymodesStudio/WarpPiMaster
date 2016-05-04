@@ -36,6 +36,8 @@ class ofApp : public ofBaseApp
         void onColorPickerEvent(ofxDatGuiColorPickerEvent e);
         void onMatrixEvent(ofxDatGuiMatrixEvent e);
     
+    void onImageButtonEvent(ofxDatGuiButtonEvent e);
+    
     // GUI
     ofxDatGui*              guiSlaves;
     ofxDatGui*              guiMaster;
@@ -49,6 +51,9 @@ class ofApp : public ofBaseApp
     
     ofxDatGuiFolder*        slavesListFolder;
     int                     getIdFromSlave(int i);
+    
+    ofxDatGui*              guiVideo;
+    ofxDatGui*              guiImage;
     
     // TCP
     void                setupTCPConnection(int port);

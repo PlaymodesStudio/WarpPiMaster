@@ -254,6 +254,63 @@ void ofApp::onButtonEvent(ofxDatGuiButtonEvent e)
         }
 
     }
+    else if(e.target->is("useFbo"))
+    {
+        int num = slavesListFolder->size();
+        for(int i=0;i<num;i++)
+        {
+            ofxDatGuiToggle* t = slavesListFolder->getToggleAt(i);
+            string whichIdString = ofSplitString(t->getLabel()," ")[0];
+            int whichId = ofToInt(whichIdString);
+            string messageTcp = ofToString(whichId) + " fbo";
+            if(t->getEnabled())
+            {
+                messageTcp=messageTcp + " 1";
+            }
+            else
+            {
+                messageTcp=messageTcp + " 0";
+            }
+            sendTcpMessageToAll(messageTcp);
+        }
+    }
+    else if(e.target->is("doHomography"))
+    {
+        int num = slavesListFolder->size();
+        for(int i=0;i<num;i++)
+        {
+            ofxDatGuiToggle* t = slavesListFolder->getToggleAt(i);
+            string whichIdString = ofSplitString(t->getLabel()," ")[0];
+            int whichId = ofToInt(whichIdString);
+            string messageTcp = ofToString(whichId) + " homography";
+            if(t->getEnabled())
+            {
+                messageTcp=messageTcp + " 1";
+            }
+            else
+            {
+                messageTcp=messageTcp + " 0";
+            }
+            sendTcpMessageToAll(messageTcp);
+        }
+    }
+    else if(e.target->is("Play"))
+    {
+        ofxDatGuiToggle* t = slavesListFolder->getToggleAt(0);
+        string whichIdString = ofSplitString(t->getLabel()," ")[0];
+        int whichId = ofToInt(whichIdString);
+        
+        //sendTcpMessageToAll(ofToString(whichId) + " load Timecoded_Big_bunny_1.mov 2");
+        sendTcpMessageToAll(ofToString(whichId) + " loadImage test/testImage3.jpg 5");
+    }
+    else if(e.target->is("Play"))
+    {
+        ofxDatGuiToggle* t = slavesListFolder->getToggleAt(0);
+        string whichIdString = ofSplitString(t->getLabel()," ")[0];
+        int whichId = ofToInt(whichIdString);
+
+        //sendTcpMessageToAll(ofToString(whichId) + " load Timecoded_Big_bunny_1.mov 2");
+    }
     else if(e.target->is("Save Config"))
     {
         saveConfig();
@@ -323,6 +380,50 @@ void ofApp::onButtonEvent(ofxDatGuiButtonEvent e)
     }
 
 
+
+}
+
+//-------------------------------------------------------------------------------
+void ofApp::onImageButtonEvent(ofxDatGuiButtonEvent e)
+{
+    cout << "onImageButtonEvent: " << e.target->getLabel() << " " << e.target->getEnabled() << endl;
+    
+    if(e.target->is("play"))
+    {
+        
+    }
+    else if(e.target->is("pause"))
+    {
+        
+    }
+    else if(e.target->is("stop"))
+    {
+        ofxDatGuiToggle* t = slavesListFolder->getToggleAt(0);
+        string whichIdString = ofSplitString(t->getLabel()," ")[0];
+        int whichId = ofToInt(whichIdString);
+        sendTcpMessageToAll(ofToString(whichId) + " loadImage noimage 2");
+    }
+    else if(e.target->is("load image 1"))
+    {
+        ofxDatGuiToggle* t = slavesListFolder->getToggleAt(0);
+        string whichIdString = ofSplitString(t->getLabel()," ")[0];
+        int whichId = ofToInt(whichIdString);
+        sendTcpMessageToAll(ofToString(whichId) + " loadImage test/testImage1.jpg 5");
+    }
+    else if(e.target->is("load image 2"))
+    {
+        ofxDatGuiToggle* t = slavesListFolder->getToggleAt(0);
+        string whichIdString = ofSplitString(t->getLabel()," ")[0];
+        int whichId = ofToInt(whichIdString);
+        sendTcpMessageToAll(ofToString(whichId) + " loadImage test/testImage2.jpg 2");
+    }
+    else if(e.target->is("load folder"))
+    {
+        ofxDatGuiToggle* t = slavesListFolder->getToggleAt(0);
+        string whichIdString = ofSplitString(t->getLabel()," ")[0];
+        int whichId = ofToInt(whichIdString);
+        sendTcpMessageToAll(ofToString(whichId) + " loadFolder test 2");
+    }
 
 }
 
@@ -467,15 +568,15 @@ void ofApp::handleTcpIn()
                 // to slave info
                 slaveInfo s;
                 s.id = theId;
-                if(tokens.size()>=3)
+                if(tokens.size()>=2)
                 {
                     s.name = tokens[2];
-                    s.ip = tokens[3];
+                    s.ip = tcpServer.getClientIP(i);
                 }
                 else
                 {
                     s.name = "defaultName";
-                    s.ip = "defaultIP";
+                    s.ip = tcpServer.getClientIP(i);
                 }
                 
                 
@@ -608,6 +709,9 @@ void ofApp::resetTCPConnection(int _port)
 {
     tcpLock.lock();
     
+    string messageTcp = "all close";
+    sendTcpMessageToAll(messageTcp);
+    sleep(1);
     if(tcpServer.disconnectAllClients())
     {
         cout << "oooooooooooooooooooooooooooooooooooooooooooooooo" << endl;
