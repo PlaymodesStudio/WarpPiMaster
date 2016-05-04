@@ -52,9 +52,6 @@ class ofApp : public ofBaseApp
     ofxDatGuiFolder*        slavesListFolder;
     int                     getIdFromSlave(int i);
     
-    ofxDatGui*              guiVideo;
-    ofxDatGui*              guiImage;
-    
     // TCP
     void                setupTCPConnection(int port);
     void                resetTCPConnection(int port);
