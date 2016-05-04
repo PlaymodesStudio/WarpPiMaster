@@ -84,10 +84,11 @@ void ofApp::update()
     handleTcpOut();
     tcpLock.unlock();
     
-    if(!tcpServer.isConnected() && (ofGetElapsedTimef()-timeLastConnection>10.0))
+    if(!tcpServer.isConnected() && (ofGetElapsedTimef()-timeLastConnection>35.0))
     {
         ofxDatGuiTextInput* i = (ofxDatGuiTextInput*) guiMaster->getTextInput("TCP Port");
-        setupTCPConnection(ofToInt(i->getText()));
+        resetTCPConnection(ofToInt(i->getText()));
+//        setupTCPConnection();
         timeLastConnection=ofGetElapsedTimef();
         
     }
