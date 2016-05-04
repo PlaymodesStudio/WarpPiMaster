@@ -39,7 +39,16 @@ class ofApp : public ofBaseApp
     // GUI
     ofxDatGui*              guiSlaves;
     ofxDatGui*              guiMaster;
+    ofxDatGui*              guiScreen;
+    ofxDatGui*              guiVideo;
+    
+    void                    setupGuiSlaves();
+    void                    setupGuiMaster();
+    void                    setupGuiScreen();
+    void                    setupGuiVideo();
+    
     ofxDatGuiFolder*        slavesListFolder;
+    int                     getIdFromSlave(int i);
     
     // TCP
     void                setupTCPConnection(int port);

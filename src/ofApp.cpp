@@ -41,7 +41,7 @@ vector<string> ofApp::buildDevicesIPsString()
 
 void ofApp::setup()
 {
-    ofSetBackgroundColor(64, 64, 64);
+    ofSetBackgroundColor(48, 48, 48);
     deviceSelected = -1;
     networkDevices       = getDevicesIPs();
     networkDevicesAndIPs = buildDevicesIPsString();
@@ -55,113 +55,21 @@ void ofApp::setup()
     ofxDatGui::setAssetPath("");
 
     // GUI MASTER
-    ///////////////
-    guiMaster = new ofxDatGui();
-
-    guiMaster->addHeader("WARPI MASTER")->setBackgroundColor(ofColor(127));
-    guiMaster->addToggle("TCP Connected",isTcpConnected);
-    ofxDatGuiTextInput *tcpP = guiMaster->addTextInput("TCP Port");
-    tcpP->setText(ofToString(confTCPPort));
-    tcpP->setStripe(ofColor(0,225,0), 5);
-    guiMaster->addButton("Reset TCP Connection");
-
-    guiMaster->addDropdown("NETWORK",networkDevicesAndIPs)->setStripe(ofColor(0,128,255), 5);;
-    
-    // set the dropdown to the device coming from config.xml if exists ... NETWORK instead
-    ofxDatGuiDropdown* dd = (ofxDatGuiDropdown*) guiMaster->getDropdown("NETWORK");
-    dd->setStripe(ofColor(255,255,255),5);
-    int whichOne=-1;
-    for(int i=0;i<networkDevices.size();i++)
-    {
-        if(networkDevices[i]==confNetworkDevice)
-        {
-            // this is the device we got saved in config.xml
-            whichOne=i;
-        }
-    }
-    if(whichOne>-1)
-    {
-        dd->select(whichOne);
-        deviceSelected=whichOne;
-    }
-    guiMaster->addButton("Save Config")->setStripe(ofColor(255,255,255),5);
-    
-    guiMaster->setPosition(10, 10);
-    
-    guiMaster->onButtonEvent(this, &ofApp::onButtonEvent);
-    guiMaster->onDropdownEvent(this, &ofApp::onDropdownEvent);
-    guiMaster->onTextInputEvent(this, &ofApp::onTextInputEvent);
+    setupGuiMaster();
     
     // TCP
     ///////
     setupTCPConnection(confTCPPort);
     
+    // GUI SLAVES
+    setupGuiSlaves();
     
-    // GUI SLAVE
-    ///////////////
-    
-    // instantiate and position the gui //
-    guiSlaves = new ofxDatGui();
-    guiSlaves->setPosition(guiMaster->getWidth()+10+10, 10);
+    // GUI SCREEN
+    setupGuiScreen();
 
-    // adding the optional header allows you to drag the gui around //
-    guiSlaves->addHeader("SLAVES")->setBackgroundColor(ofColor(127));
+    // GUI VIDEO
+    setupGuiVideo();
 
-    //slavesListFolder = guiSlaves->addFolder("Slaves List", ofColor::red);
-    
-    ofColor c = ofColor(255,255,255);
-    guiSlaves->addButton("Test")->setStripe(c, 5);
-    guiSlaves->addButton("Debug")->setStripe(c, 5);
-    guiSlaves->addButton("Reboot")->setStripe(c, 5);
-    guiSlaves->addButton("Shutdown")->setStripe(c, 5);
-    guiSlaves->addButton("Exit")->setStripe(c, 5);
-    guiSlaves->addButton("Ping all ¿?")->setStripe(c, 5);
-
-    {
-        // add a folder to group a few components together //
-        guiSlaves->addBreak();
-        ofColor cl = ofColor(0,225,0);
-        slavesListFolder = new ofxDatGuiFolder("Slaves List", cl);
-        slavesListFolder->setStripe(cl, 5);
-        
-        if(false)
-        {
-            for(int i=0;i<6;i++)
-            {
-                // to slave info
-                slaveInfo s;
-                s.id = i;
-                s.name = "Pi_" + ofToString(i);
-                s.ip = "192.168.0." + ofToString(i+101);
-        
-                // to the gui
-                ofxDatGuiToggle* tog = new ofxDatGuiToggle(ofToString(s.id) + " " +s.name + " " + s.ip,true);
-                slavesListFolder->addToggle(tog->getLabel(),tog->getEnabled())->setStripe(cl, 5);
-        
-                // add toggle to slave info
-                s.toggle = tog;
-            }
-            guiSlaves->addBreak();
-            slavesListFolder->expand();
-        }
-        
-    }
-    guiSlaves->addFolder(slavesListFolder);
-
-    guiSlaves->addButton("Select All")->setStripe(ofColor(255,128,0), 5);
-    guiSlaves->addButton("Select None")->setStripe(ofColor(255,128,0), 5);
-    guiSlaves->addButton("Play")->setStripe(c, 5);
-
-    
-    // once the gui has been assembled, register callbacks to listen for component specific events //
-   guiSlaves->onButtonEvent(this, &ofApp::onButtonEvent);
-   guiSlaves->onSliderEvent(this, &ofApp::onSliderEvent);
-   guiSlaves->onTextInputEvent(this, &ofApp::onTextInputEvent);
-   guiSlaves->on2dPadEvent(this, &ofApp::on2dPadEvent);
-   guiSlaves->onDropdownEvent(this, &ofApp::onDropdownEvent);
-   guiSlaves->onColorPickerEvent(this, &ofApp::onColorPickerEvent);
-   guiSlaves->onMatrixEvent(this, &ofApp::onMatrixEvent);
-    
     // launch the app //
     mFullscreen = false;
     refreshWindow();
@@ -176,7 +84,7 @@ void ofApp::update()
     handleTcpOut();
     tcpLock.unlock();
     
-    if(!tcpServer.isConnected() && (ofGetElapsedTimef()-timeLastConnection>3.0))
+    if(!tcpServer.isConnected() && (ofGetElapsedTimef()-timeLastConnection>10.0))
     {
         ofxDatGuiTextInput* i = (ofxDatGuiTextInput*) guiMaster->getTextInput("TCP Port");
         setupTCPConnection(ofToInt(i->getText()));
@@ -226,22 +134,34 @@ void ofApp::onSliderEvent(ofxDatGuiSliderEvent e)
     //if (e.target->is("datgui opacity"))guiSlaves->setOpacity(e.scale);
 }
 
+
+//-------------------------------------------------------------------------------
+int ofApp::getIdFromSlave(int i)
+{
+    ofxDatGuiToggle* t = slavesListFolder->getToggleAt(i);
+    string whichIdString = ofSplitString(t->getLabel()," ")[0];
+
+    return (ofToInt(whichIdString));
+}
+
 //-------------------------------------------------------------------------------
 void ofApp::onButtonEvent(ofxDatGuiButtonEvent e)
 {
-    cout << "onButtonEvent: " << e.target->getLabel() << " " << e.target->getEnabled() << endl;
+//    cout << "onButtonEvent: " << e.target->getLabel() << " " << e.target->getEnabled() << endl;
     
     if(e.target->is("Ping all ¿?"))
     {
-        string messageTcp = "all ping";
-        sendTcpMessageToAll(messageTcp);
-        cout << "Sending PING to ALL clients" << endl;
-        
-        //slavesListFolder->collapse();
-        slavesListFolder->clear();
-        
-        guiSlaves->setPosition(guiSlaves->getPosition().x,guiSlaves->getPosition().y);
-
+        if(tcpServer.isConnected())
+        {
+            string messageTcp = "all ping";
+            sendTcpMessageToAll(messageTcp);
+            cout << "Sending PING to ALL clients" << endl;
+            
+            slavesListFolder->clear();
+            slavesListFolder->expand();
+            
+            guiSlaves->setPosition(guiSlaves->getPosition().x,guiSlaves->getPosition().y);
+        }
     }
     else if(e.target->is("Select All"))
     {
@@ -268,9 +188,8 @@ void ofApp::onButtonEvent(ofxDatGuiButtonEvent e)
         for(int i=0;i<num;i++)
         {
             ofxDatGuiToggle* t = slavesListFolder->getToggleAt(i);
-            string whichIdString = ofSplitString(t->getLabel()," ")[0];
-            int whichId = ofToInt(whichIdString);
-            string messageTcp = ofToString(whichId) + " test";
+            string messageTcp = ofToString(getIdFromSlave(i)) + " test";
+            
             if(t->getEnabled())
             {
                 messageTcp=messageTcp + " 1";
@@ -290,9 +209,8 @@ void ofApp::onButtonEvent(ofxDatGuiButtonEvent e)
         for(int i=0;i<num;i++)
         {
             ofxDatGuiToggle* t = slavesListFolder->getToggleAt(i);
-            string whichIdString = ofSplitString(t->getLabel()," ")[0];
-            int whichId = ofToInt(whichIdString);
-            string messageTcp = ofToString(whichId) + " debug";
+            string messageTcp = ofToString(getIdFromSlave(i)) + " debug";
+
             if(t->getEnabled())
             {
                 messageTcp=messageTcp + " 1";
@@ -309,18 +227,8 @@ void ofApp::onButtonEvent(ofxDatGuiButtonEvent e)
         int num = slavesListFolder->size();
         for(int i=0;i<num;i++)
         {
-            ofxDatGuiToggle* t = slavesListFolder->getToggleAt(i);
-            string whichIdString = ofSplitString(t->getLabel()," ")[0];
-            int whichId = ofToInt(whichIdString);
-            string messageTcp = ofToString(whichId) + " reboot";
-//            if(t->getEnabled())
-//            {
-//                messageTcp=messageTcp + " 1";
-//            }
-//            else
-//            {
-//                messageTcp=messageTcp + " 0";
-//            }
+            string messageTcp = ofToString(getIdFromSlave(i)) + " reboot";
+
             sendTcpMessageToAll(messageTcp);
         }
     }
@@ -329,18 +237,8 @@ void ofApp::onButtonEvent(ofxDatGuiButtonEvent e)
         int num = slavesListFolder->size();
         for(int i=0;i<num;i++)
         {
-            ofxDatGuiToggle* t = slavesListFolder->getToggleAt(i);
-            string whichIdString = ofSplitString(t->getLabel()," ")[0];
-            int whichId = ofToInt(whichIdString);
-            string messageTcp = ofToString(whichId) + " shutdown";
-//            if(t->getEnabled())
-//            {
-//                messageTcp=messageTcp + " 1";
-//            }
-//            else
-//            {
-//                messageTcp=messageTcp + " 0";
-//            }
+            string messageTcp = ofToString(getIdFromSlave(i)) + " shutdown";
+            
             sendTcpMessageToAll(messageTcp);
         }
 
@@ -350,29 +248,11 @@ void ofApp::onButtonEvent(ofxDatGuiButtonEvent e)
         int num = slavesListFolder->size();
         for(int i=0;i<num;i++)
         {
-            ofxDatGuiToggle* t = slavesListFolder->getToggleAt(i);
-            string whichIdString = ofSplitString(t->getLabel()," ")[0];
-            int whichId = ofToInt(whichIdString);
-            string messageTcp = ofToString(whichId) + " exit";
-//            if(t->getEnabled())
-//            {
-//                messageTcp=messageTcp + " 1";
-//            }
-//            else
-//            {
-//                messageTcp=messageTcp + " 0";
-//            }
+            string messageTcp = ofToString(getIdFromSlave(i)) + " exit";
+            
             sendTcpMessageToAll(messageTcp);
         }
 
-    }
-    else if(e.target->is("Play"))
-    {
-        ofxDatGuiToggle* t = slavesListFolder->getToggleAt(0);
-        string whichIdString = ofSplitString(t->getLabel()," ")[0];
-        int whichId = ofToInt(whichIdString);
-
-        sendTcpMessageToAll(ofToString(whichId) + " load Timecoded_Big_bunny_1.mov 2");
     }
     else if(e.target->is("Save Config"))
     {
@@ -387,11 +267,63 @@ void ofApp::onButtonEvent(ofxDatGuiButtonEvent e)
         ofxDatGuiTextInput* i = (ofxDatGuiTextInput*) guiMaster->getTextInput("TCP Port");
         resetTCPConnection(ofToInt(i->getText()));
     }
+    
+
+    /// GUI SCREEN
+    ///////////////
+    
+    else if(e.target->is("Use FBO ?"))
+    {
+        cout << "Do something when : --use FBO-- is pressed !! TO DO !! " << endl;
+    }
+    else if(e.target->is("Use Homography ?"))
+    {
+        cout << "Do something when : --use Homography-- is pressed !! TO DO !! " << endl;
+    }
+    else if(e.target->is("Edit Quad"))
+    {
+        cout << "Do something when : --edit Quad-- is pressed !! TO DO !! " << endl;
+    }
+    else if(e.target->is("Next Corner"))
+    {
+        cout << "Do something when : --next Corner-- is pressed !! TO DO !! " << endl;
+    }
+    else if(e.target->is("Previous Corner"))
+    {
+        cout << "Do something when : --Previous Corner-- is pressed !! TO DO !! " << endl;
+    }
+    else if(e.target->is("Reset Quad"))
+    {
+        cout << "Do something when : --Reset Quad-- is pressed !! TO DO !! " << endl;
+    }
+    else if(e.target->is("Save Quad"))
+    {
+        cout << "Do something when : --Save Quad-- is pressed !! TO DO !! " << endl;
+    }
+
+    
+    /// GUI SCREEN
+    ///////////////
+    
+    else if(e.target->is("Play Video"))
+    {
+        cout << "Do something when : --Play Video-- is pressed !! TO DO !! " << endl;
+    }
+    else if(e.target->is("Stop Video"))
+    {
+        cout << "Do something when : --Stop Video-- is pressed !! TO DO !! " << endl;
+    }
+    else if(e.target->is("Pause Video"))
+    {
+        cout << "Do something when : --Pause Video-- is pressed !! TO DO !! " << endl;
+    }
+    else if(e.target->is("Restart Video"))
+    {
+        cout << "Do something when : --Restart Video-- is pressed !! TO DO !! " << endl;
+    }
 
 
-    
-    
-    
+
 }
 
 //-------------------------------------------------------------------------------
@@ -403,6 +335,12 @@ void ofApp::onTextInputEvent(ofxDatGuiTextInputEvent e)
         ofxDatGuiTextInput* i = (ofxDatGuiTextInput*) guiMaster->getTextInput("TCP Port");
         resetTCPConnection(ofToInt(i->getText()));
     }
+    else if(e.target->is("Load Video"))
+    {
+        cout << "Do something when : --Load Video-- is pressed !! TO DO !! " << endl;
+    }
+
+
 
 }
 
@@ -438,6 +376,7 @@ void ofApp::keyPressed(int key)
     if (key == 'f') {
         toggleFullscreen();
     }
+    
 }
 
 //-------------------------------------------------------------------------------
@@ -541,7 +480,7 @@ void ofApp::handleTcpIn()
                 
                 
                 ofxDatGuiToggle* tog = slavesListFolder->addToggle(ofToString(s.id) + " " +s.name + " " + s.ip,true);
-                tog->setStripe(ofColor(200,0,0), 5);
+                tog->setStripe(ofColor(0,128,255), 5);
                 tog->setBackgroundColor(ofColor(32));
                 // stupid hack to
                 guiSlaves->setPosition(guiSlaves->getPosition().x,guiSlaves->getPosition().y);
@@ -557,16 +496,20 @@ void ofApp::handleTcpIn()
 //-------------------------------------------------------------------------------
 void ofApp::sendTcpMessageToAll(string mess)
 {
-    /// SEND TO ALL TCP CLIENTS !!
-    //for each client lets send them a message
-    for(int j = 0; j < tcpServer.getLastID(); j++)
+    if(tcpServer.isConnected())
     {
-        if( !tcpServer.isClientConnected(j) )
+
+        /// SEND TO ALL TCP CLIENTS !!
+        //for each client lets send them a message
+        for(int j = 0; j < tcpServer.getLastID(); j++)
         {
-            continue;
+            if( !tcpServer.isClientConnected(j) )
+            {
+                continue;
+            }
+            tcpServer.send(j,mess);
+            cout << "TCP Send : " << mess << endl;
         }
-        tcpServer.send(j,mess);
-        cout << "TCP Send : " << mess << endl;
     }
 }
 
@@ -688,3 +631,192 @@ void ofApp::resetTCPConnection(int _port)
     }
     tcpLock.unlock();
 }
+
+
+//--------------------------------------------------------------
+void ofApp::setupGuiSlaves()
+{
+    // GUI SLAVE
+    ///////////////
+    
+    // instantiate and position the gui //
+    guiSlaves = new ofxDatGui();
+    guiSlaves->setPosition(guiMaster->getWidth()+10+10, 10);
+    
+    // adding the optional header allows you to drag the gui around //
+    guiSlaves->addHeader("SLAVES")->setBackgroundColor(ofColor(127));
+    
+    //slavesListFolder = guiSlaves->addFolder("Slaves List", ofColor::red);
+    
+    ofColor c = ofColor(255,255,255);
+    guiSlaves->addButton("Test")->setStripe(c, 5);
+    guiSlaves->addButton("Debug")->setStripe(c, 5);
+    guiSlaves->addButton("Reboot")->setStripe(c, 5);
+    guiSlaves->addButton("Shutdown")->setStripe(c, 5);
+    guiSlaves->addButton("Exit")->setStripe(c, 5);
+    guiSlaves->addButton("Ping all ¿?")->setStripe(c, 5);
+    
+    {
+        // add a folder to group a few components together //
+        guiSlaves->addBreak();
+        ofColor cl = ofColor(0,128,255);
+        slavesListFolder = guiSlaves->addFolder("Slaves List", cl);
+        slavesListFolder->setStripe(cl, 5);
+        
+        if(false)
+        {
+            for(int i=0;i<6;i++)
+            {
+                // to slave info
+                slaveInfo s;
+                s.id = i;
+                s.name = "Pi_" + ofToString(i);
+                s.ip = "192.168.0." + ofToString(i+101);
+                
+                // to the gui
+                ofxDatGuiToggle* tog = new ofxDatGuiToggle(ofToString(s.id) + " " +s.name + " " + s.ip,true);
+                slavesListFolder->addToggle(tog->getLabel(),tog->getEnabled())->setStripe(cl, 5);
+                
+                // add toggle to slave info
+                s.toggle = tog;
+            }
+            guiSlaves->addBreak();
+            slavesListFolder->expand();
+        }
+        
+    }
+    
+    //    guiSlaves->addFolder(slavesListFolder);
+    
+    guiSlaves->addBreak();
+    guiSlaves->addButton("Select All")->setStripe(ofColor(255,128,0), 5);
+    guiSlaves->addButton("Select None")->setStripe(ofColor(255,128,0), 5);
+    
+    
+    // once the gui has been assembled, register callbacks to listen for component specific events //
+    guiSlaves->onButtonEvent(this, &ofApp::onButtonEvent);
+    guiSlaves->onSliderEvent(this, &ofApp::onSliderEvent);
+    guiSlaves->onTextInputEvent(this, &ofApp::onTextInputEvent);
+    guiSlaves->on2dPadEvent(this, &ofApp::on2dPadEvent);
+    guiSlaves->onDropdownEvent(this, &ofApp::onDropdownEvent);
+    guiSlaves->onColorPickerEvent(this, &ofApp::onColorPickerEvent);
+    guiSlaves->onMatrixEvent(this, &ofApp::onMatrixEvent);
+    
+}
+//--------------------------------------------------------------
+void ofApp::setupGuiMaster()
+{
+    // GUI MASTER
+    ///////////////
+    guiMaster = new ofxDatGui();
+    
+    guiMaster->addHeader("WARPI MASTER")->setBackgroundColor(ofColor(127));
+    guiMaster->addToggle("TCP Connected",isTcpConnected);
+    ofxDatGuiTextInput *tcpP = guiMaster->addTextInput("TCP Port");
+    tcpP->setText(ofToString(confTCPPort));
+    tcpP->setStripe(ofColor(255,128,0), 5);
+    guiMaster->addButton("Reset TCP Connection");
+    
+    guiMaster->addDropdown("NETWORK",networkDevicesAndIPs)->setStripe(ofColor(0,128,255), 5);;
+    
+    // set the dropdown to the device coming from config.xml if exists ... NETWORK instead
+    ofxDatGuiDropdown* dd = (ofxDatGuiDropdown*) guiMaster->getDropdown("NETWORK");
+    dd->setStripe(ofColor(255,255,255),5);
+    int whichOne=-1;
+    for(int i=0;i<networkDevices.size();i++)
+    {
+        if(networkDevices[i]==confNetworkDevice)
+        {
+            // this is the device we got saved in config.xml
+            whichOne=i;
+        }
+    }
+    if(whichOne>-1)
+    {
+        dd->select(whichOne);
+        deviceSelected=whichOne;
+    }
+    guiMaster->addButton("Save Config")->setStripe(ofColor(255,255,255),5);
+    
+    guiMaster->setPosition(10, 10);
+    
+    guiMaster->onButtonEvent(this, &ofApp::onButtonEvent);
+    guiMaster->onDropdownEvent(this, &ofApp::onDropdownEvent);
+    guiMaster->onTextInputEvent(this, &ofApp::onTextInputEvent);
+    
+}
+//--------------------------------------------------------------
+void ofApp::setupGuiScreen()
+{
+    // GUI SLAVE
+    ///////////////
+    
+    // instantiate and position the gui //
+    guiScreen = new ofxDatGui();
+    guiScreen->setPosition(guiSlaves->getPosition().x + guiSlaves->getWidth() +10, 10);
+    
+    // adding the optional header allows you to drag the gui around //
+    guiScreen->addHeader("SCREEN")->setBackgroundColor(ofColor(127));
+    
+    //slavesListFolder = guiSlaves->addFolder("Slaves List", ofColor::red);
+    
+    ofColor c = ofColor(255,255,255);
+    guiScreen->addToggle("Use FBO ?")->setStripe(c, 5);
+    guiScreen->addToggle("Use Homography ?")->setStripe(c, 5);
+    guiScreen->addBreak();
+    guiScreen->addToggle("Edit Quad")->setStripe(c, 5);
+    guiScreen->addButton("Next Corner")->setStripe(c, 5);
+    guiScreen->addButton("Previous Corner")->setStripe(c, 5);
+    guiScreen->addLabel("Use arrow keys to move corners.")->setStripe(ofColor(128), 5);;
+    guiScreen->addBreak();
+    guiScreen->addButton("Reset Quad")->setStripe(c, 5);
+    guiScreen->addButton("Save Quad")->setStripe(c, 5);
+    
+    
+    // once the gui has been assembled, register callbacks to listen for component specific events //
+    guiScreen->onButtonEvent(this, &ofApp::onButtonEvent);
+//    guiSlaves->onSliderEvent(this, &ofApp::onSliderEvent);
+//    guiSlaves->onTextInputEvent(this, &ofApp::onTextInputEvent);
+//    guiSlaves->on2dPadEvent(this, &ofApp::on2dPadEvent);
+//    guiSlaves->onDropdownEvent(this, &ofApp::onDropdownEvent);
+//    guiSlaves->onColorPickerEvent(this, &ofApp::onColorPickerEvent);
+//    guiSlaves->onMatrixEvent(this, &ofApp::onMatrixEvent);
+
+    
+}
+//--------------------------------------------------------------
+void ofApp::setupGuiVideo()
+{
+    // GUI SLAVE
+    ///////////////
+    
+    // instantiate and position the gui //
+    guiVideo = new ofxDatGui();
+    guiVideo->setPosition(guiScreen->getPosition().x + guiScreen->getWidth() +10, 10);
+    
+    // adding the optional header allows you to drag the gui around //
+    guiVideo->addHeader("VIDEO")->setBackgroundColor(ofColor(127));
+    
+    //slavesListFolder = guiSlaves->addFolder("Slaves List", ofColor::red);
+    
+    ofColor c = ofColor(255,255,255);
+    guiVideo->addButton("Play Video")->setStripe(c, 5);
+    guiVideo->addButton("Stop Video")->setStripe(c, 5);
+    guiVideo->addButton("Pause Video")->setStripe(c, 5);
+    guiVideo->addButton("Restart Video")->setStripe(c, 5);
+    guiVideo->addTextInput("Load Video","test.mov")->setStripe(c, 5);
+    
+    guiVideo->addBreak();
+    
+    // once the gui has been assembled, register callbacks to listen for component specific events //
+    guiVideo->onButtonEvent(this, &ofApp::onButtonEvent);
+    guiVideo->onTextInputEvent(this, &ofApp::onTextInputEvent);
+    //    guiSlaves->onSliderEvent(this, &ofApp::onSliderEvent);
+    //    guiSlaves->on2dPadEvent(this, &ofApp::on2dPadEvent);
+    //    guiSlaves->onDropdownEvent(this, &ofApp::onDropdownEvent);
+    //    guiSlaves->onColorPickerEvent(this, &ofApp::onColorPickerEvent);
+    //    guiSlaves->onMatrixEvent(this, &ofApp::onMatrixEvent);
+    
+    
+}
+
