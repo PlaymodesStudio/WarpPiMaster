@@ -63,6 +63,7 @@ class ofApp : public ofBaseApp
     void                sendTcpMessageToAll(string mess);
     void                handleTcpIn();
     float               timeLastConnection;
+    void                sendTCPPingAll();
 
     // IP
     vector<string>      getDevicesIPs();

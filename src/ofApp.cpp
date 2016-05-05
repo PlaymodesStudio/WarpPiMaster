@@ -84,12 +84,17 @@ void ofApp::update()
     handleTcpOut();
     tcpLock.unlock();
     
+    // if we got too much time without connection ...
     if(!tcpServer.isConnected() && (ofGetElapsedTimef()-timeLastConnection>35.0))
     {
         ofxDatGuiTextInput* i = (ofxDatGuiTextInput*) guiMaster->getTextInput("TCP Port");
+        // reset TCP connection
         resetTCPConnection(ofToInt(i->getText()));
-//        setupTCPConnection();
+        
         timeLastConnection=ofGetElapsedTimef();
+        
+        // send ping to all
+        sendTCPPingAll();
         
     }
     
@@ -152,17 +157,7 @@ void ofApp::onButtonEvent(ofxDatGuiButtonEvent e)
     
     if(e.target->is("Ping all ¿?"))
     {
-        if(tcpServer.isConnected())
-        {
-            string messageTcp = "all ping";
-            sendTcpMessageToAll(messageTcp);
-            cout << "Sending PING to ALL clients" << endl;
-            
-            slavesListFolder->clear();
-            slavesListFolder->expand();
-            
-            guiSlaves->setPosition(guiSlaves->getPosition().x,guiSlaves->getPosition().y);
-        }
+        sendTCPPingAll();
     }
     else if(e.target->is("Select All"))
     {
@@ -559,6 +554,8 @@ void ofApp::handleTcpIn()
             
             vector<string> tokens = ofSplitString(str, " ");
             
+            cout << "Received TCP message : " << str << endl;
+            
             if(tokens[0]=="pong")
             {
                 //slavesListFolder->collapse();
@@ -589,6 +586,11 @@ void ofApp::handleTcpIn()
 
                 s.toggle = tog;
                 slavesListFolder->expand();
+            }
+            if(tokens[0]=="awake")
+            {
+                cout << "Received : awake . So sending ping to all !! " << endl;
+                sendTCPPingAll();
             }
         }
         
@@ -925,3 +927,18 @@ void ofApp::setupGuiVideo()
     
 }
 
+//--------------------------------------------------------------
+void ofApp::sendTCPPingAll()
+{
+    if(tcpServer.isConnected())
+    {
+        string messageTcp = "all ping";
+        sendTcpMessageToAll(messageTcp);
+        cout << "Sending PING to ALL clients" << endl;
+        
+        slavesListFolder->clear();
+        slavesListFolder->expand();
+        
+        guiSlaves->setPosition(guiSlaves->getPosition().x,guiSlaves->getPosition().y);
+    }
+}
