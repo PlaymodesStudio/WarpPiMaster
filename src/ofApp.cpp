@@ -39,6 +39,8 @@ vector<string> ofApp::buildDevicesIPsString()
 //-------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------
 
+# pragma mark ---------- Setup and loop ----------
+
 void ofApp::setup()
 {
     ofSetBackgroundColor(48, 48, 48);
@@ -152,6 +154,8 @@ int ofApp::getIdFromSlave(int i)
 
     return (ofToInt(whichIdString));
 }
+
+# pragma mark ---------- Button Events ----------
 
 //-------------------------------------------------------------------------------
 void ofApp::onButtonEvent(ofxDatGuiButtonEvent e)
@@ -348,13 +352,36 @@ void ofApp::onMatrixEvent(ofxDatGuiMatrixEvent e)
     //    cout << "onMatrixEvent " << e.child << " : " << e.enabled << endl;
     //    cout << "onMatrixEvent " << e.target->getLabel() << " : " << e.target->getSelected().size() << endl;
 }
-
+#pragma mark ---------- System events ----------
 //-------------------------------------------------------------------------------
 void ofApp::keyPressed(int key)
 {
     if (key == 'f') {
         toggleFullscreen();
     }
+    
+    
+    int quadStep = 1;
+    if(ofGetKeyPressed(OF_KEY_SHIFT)) quadStep = 5;
+    /// QUAD WARPING
+    ////////////////
+    if (key == OF_KEY_LEFT)
+    {
+        sendMessageToSlavesFolder("movePointLeft " + ofToString(quadStep));
+    }
+    else if (key == OF_KEY_RIGHT)
+    {
+        sendMessageToSlavesFolder("movePointRight " + ofToString(quadStep));
+    }
+    else if (key == OF_KEY_UP)
+    {
+        sendMessageToSlavesFolder("movePointUp " + ofToString(quadStep));
+    }
+    else if (key == OF_KEY_DOWN)
+    {
+        sendMessageToSlavesFolder("movePointDown " + ofToString(quadStep));
+    }
+
     
 }
 
@@ -379,6 +406,9 @@ void ofApp::refreshWindow()
 // TCP
 //-------------------------------------------------------------------------------
 ///--------------------------------------------------------------
+
+# pragma mark ---------- TCP ----------
+
 void ofApp::handleTcpOut()
 {
     
@@ -668,7 +698,7 @@ void ofApp::resetTCPConnection(int _port)
     tcpLock.unlock();
 }
 
-
+#pragma mark ---------- setup GUIS ----------
 //--------------------------------------------------------------
 void ofApp::setupGuiSlaves()
 {
