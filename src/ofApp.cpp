@@ -69,6 +69,9 @@ void ofApp::setup()
 
     // GUI VIDEO
     setupGuiVideo();
+    
+    // GUI IMAGE
+    setupGuiImage();
 
     // launch the app //
     mFullscreen = false;
@@ -184,132 +187,23 @@ void ofApp::onButtonEvent(ofxDatGuiButtonEvent e)
     }
     else if(e.target->is("Test"))
     {
-        int num = slavesListFolder->size();
-        for(int i=0;i<num;i++)
-        {
-            ofxDatGuiToggle* t = slavesListFolder->getToggleAt(i);
-            string messageTcp = ofToString(getIdFromSlave(i)) + " test";
-            
-            if(t->getEnabled())
-            {
-                messageTcp=messageTcp + " 1";
-            }
-            else
-            {
-                messageTcp=messageTcp + " 0";
-            }
-            sendTcpMessageToAll(messageTcp);
-        }
-
-        
+        sendMessageToSlavesFolderWithActiveInfo("test");
     }
     else if(e.target->is("Debug"))
     {
-        int num = slavesListFolder->size();
-        for(int i=0;i<num;i++)
-        {
-            ofxDatGuiToggle* t = slavesListFolder->getToggleAt(i);
-            string messageTcp = ofToString(getIdFromSlave(i)) + " debug";
-
-            if(t->getEnabled())
-            {
-                messageTcp=messageTcp + " 1";
-            }
-            else
-            {
-                messageTcp=messageTcp + " 0";
-            }
-            sendTcpMessageToAll(messageTcp);
-        }
+        sendMessageToSlavesFolderWithActiveInfo("debug");
     }
     else if(e.target->is("Reboot"))
     {
-        int num = slavesListFolder->size();
-        for(int i=0;i<num;i++)
-        {
-            string messageTcp = ofToString(getIdFromSlave(i)) + " reboot";
-
-            sendTcpMessageToAll(messageTcp);
-        }
+        sendMessageToSlavesFolder("reboot");
     }
     else if(e.target->is("Shutdown"))
     {
-        int num = slavesListFolder->size();
-        for(int i=0;i<num;i++)
-        {
-            string messageTcp = ofToString(getIdFromSlave(i)) + " shutdown";
-            
-            sendTcpMessageToAll(messageTcp);
-        }
-
+        sendMessageToSlavesFolder("shutdown");
     }
     else if(e.target->is("Exit"))
     {
-        int num = slavesListFolder->size();
-        for(int i=0;i<num;i++)
-        {
-            string messageTcp = ofToString(getIdFromSlave(i)) + " exit";
-            
-            sendTcpMessageToAll(messageTcp);
-        }
-
-    }
-    else if(e.target->is("useFbo"))
-    {
-        int num = slavesListFolder->size();
-        for(int i=0;i<num;i++)
-        {
-            ofxDatGuiToggle* t = slavesListFolder->getToggleAt(i);
-            string whichIdString = ofSplitString(t->getLabel()," ")[0];
-            int whichId = ofToInt(whichIdString);
-            string messageTcp = ofToString(whichId) + " fbo";
-            if(t->getEnabled())
-            {
-                messageTcp=messageTcp + " 1";
-            }
-            else
-            {
-                messageTcp=messageTcp + " 0";
-            }
-            sendTcpMessageToAll(messageTcp);
-        }
-    }
-    else if(e.target->is("doHomography"))
-    {
-        int num = slavesListFolder->size();
-        for(int i=0;i<num;i++)
-        {
-            ofxDatGuiToggle* t = slavesListFolder->getToggleAt(i);
-            string whichIdString = ofSplitString(t->getLabel()," ")[0];
-            int whichId = ofToInt(whichIdString);
-            string messageTcp = ofToString(whichId) + " homography";
-            if(t->getEnabled())
-            {
-                messageTcp=messageTcp + " 1";
-            }
-            else
-            {
-                messageTcp=messageTcp + " 0";
-            }
-            sendTcpMessageToAll(messageTcp);
-        }
-    }
-    else if(e.target->is("Play"))
-    {
-        ofxDatGuiToggle* t = slavesListFolder->getToggleAt(0);
-        string whichIdString = ofSplitString(t->getLabel()," ")[0];
-        int whichId = ofToInt(whichIdString);
-        
-        //sendTcpMessageToAll(ofToString(whichId) + " load Timecoded_Big_bunny_1.mov 2");
-        sendTcpMessageToAll(ofToString(whichId) + " loadImage test/testImage3.jpg 5");
-    }
-    else if(e.target->is("Play"))
-    {
-        ofxDatGuiToggle* t = slavesListFolder->getToggleAt(0);
-        string whichIdString = ofSplitString(t->getLabel()," ")[0];
-        int whichId = ofToInt(whichIdString);
-
-        //sendTcpMessageToAll(ofToString(whichId) + " load Timecoded_Big_bunny_1.mov 2");
+        sendMessageToSlavesFolder("exit");
     }
     else if(e.target->is("Save Config"))
     {
@@ -331,31 +225,34 @@ void ofApp::onButtonEvent(ofxDatGuiButtonEvent e)
     
     else if(e.target->is("Use FBO ?"))
     {
-        cout << "Do something when : --use FBO-- is pressed !! TO DO !! " << endl;
+        string toggleState = ((e.target->getEnabled()) ? "1" : "0");
+        sendMessageToSlavesFolder("fbo " + toggleState);
     }
     else if(e.target->is("Use Homography ?"))
     {
-        cout << "Do something when : --use Homography-- is pressed !! TO DO !! " << endl;
+        string toggleState = ((e.target->getEnabled()) ? "1" : "0");
+        sendMessageToSlavesFolder("homography " + toggleState);
     }
     else if(e.target->is("Edit Quad"))
     {
-        cout << "Do something when : --edit Quad-- is pressed !! TO DO !! " << endl;
+        string toggleState = ((e.target->getEnabled()) ? "1" : "0");
+        sendMessageToSlavesFolder("editQuad " + toggleState);
     }
     else if(e.target->is("Next Corner"))
     {
-        cout << "Do something when : --next Corner-- is pressed !! TO DO !! " << endl;
+        sendMessageToSlavesFolder("nextQuadPoint");
     }
     else if(e.target->is("Previous Corner"))
     {
-        cout << "Do something when : --Previous Corner-- is pressed !! TO DO !! " << endl;
+        sendMessageToSlavesFolder("preQuadPoint");
     }
     else if(e.target->is("Reset Quad"))
     {
-        cout << "Do something when : --Reset Quad-- is pressed !! TO DO !! " << endl;
+        sendMessageToSlavesFolder("resetQuad");
     }
     else if(e.target->is("Save Quad"))
     {
-        cout << "Do something when : --Save Quad-- is pressed !! TO DO !! " << endl;
+        sendMessageToSlavesFolder("saveQuad");
     }
 
     
@@ -398,31 +295,19 @@ void ofApp::onImageButtonEvent(ofxDatGuiButtonEvent e)
     }
     else if(e.target->is("stop"))
     {
-        ofxDatGuiToggle* t = slavesListFolder->getToggleAt(0);
-        string whichIdString = ofSplitString(t->getLabel()," ")[0];
-        int whichId = ofToInt(whichIdString);
-        sendTcpMessageToAll(ofToString(whichId) + " loadImage noimage 2");
+        sendMessageToSlavesFolder("loadImage noimage 2");
     }
     else if(e.target->is("load image 1"))
     {
-        ofxDatGuiToggle* t = slavesListFolder->getToggleAt(0);
-        string whichIdString = ofSplitString(t->getLabel()," ")[0];
-        int whichId = ofToInt(whichIdString);
-        sendTcpMessageToAll(ofToString(whichId) + " loadImage test/testImage1.jpg 5");
+        sendMessageToSlavesFolder("loadImage test/testImage1.jpg 5");
     }
     else if(e.target->is("load image 2"))
     {
-        ofxDatGuiToggle* t = slavesListFolder->getToggleAt(0);
-        string whichIdString = ofSplitString(t->getLabel()," ")[0];
-        int whichId = ofToInt(whichIdString);
-        sendTcpMessageToAll(ofToString(whichId) + " loadImage test/testImage2.jpg 2");
+        sendMessageToSlavesFolder("loadImage test/testImage2.jpg 2");
     }
     else if(e.target->is("load folder"))
     {
-        ofxDatGuiToggle* t = slavesListFolder->getToggleAt(0);
-        string whichIdString = ofSplitString(t->getLabel()," ")[0];
-        int whichId = ofToInt(whichIdString);
-        sendTcpMessageToAll(ofToString(whichId) + " loadFolder test 2");
+        sendMessageToSlavesFolder("loadFolder test 2");
     }
 
 }
@@ -440,9 +325,6 @@ void ofApp::onTextInputEvent(ofxDatGuiTextInputEvent e)
     {
         cout << "Do something when : --Load Video-- is pressed !! TO DO !! " << endl;
     }
-
-
-
 }
 
 //-------------------------------------------------------------------------------
@@ -611,6 +493,53 @@ void ofApp::sendTcpMessageToAll(string mess)
             tcpServer.send(j,mess);
             cout << "TCP Send : " << mess << endl;
         }
+    }
+}
+
+//--------------------------------------------------------------
+void ofApp::sendTcpMessageToSlave(string mess, int pos)
+{
+    if(tcpServer.isConnected())
+    {
+        if( tcpServer.isClientConnected(pos))
+        {
+            tcpServer.send(pos,mess);
+            cout << "TCP Send : " << mess << endl;
+        }
+    }
+}
+
+//--------------------------------------------------------------
+void ofApp::sendMessageToSlavesFolder(string m)
+{
+    int num = slavesListFolder->size();
+    for(int i=0;i<num;i++)
+    {
+        ofxDatGuiToggle* t = slavesListFolder->getToggleAt(i);
+        if(t->getEnabled()){
+            string messageTcp = ofToString(getIdFromSlave(i)) + " " + m;
+            sendTcpMessageToSlave(messageTcp, i);
+        }
+    }
+}
+
+//--------------------------------------------------------------
+void ofApp::sendMessageToSlavesFolderWithActiveInfo(string m)
+{
+    int num = slavesListFolder->size();
+    for(int i=0;i<num;i++)
+    {
+        ofxDatGuiToggle* t = slavesListFolder->getToggleAt(i);
+        string messageTcp = ofToString(getIdFromSlave(i)) + " " + m + ((t->getEnabled()) ? " 1" : " 0");
+//        if(t->getEnabled())
+//        {
+//            messageTcp=messageTcp + " 1";
+//        }
+//        else
+//        {
+//            messageTcp=messageTcp + " 0";
+//        }
+        sendTcpMessageToSlave(messageTcp, i);
     }
 }
 
@@ -922,5 +851,29 @@ void ofApp::setupGuiVideo()
     //    guiSlaves->onMatrixEvent(this, &ofApp::onMatrixEvent);
     
     
+}
+
+void ofApp::setupGuiImage()
+{
+    // GUI IMAGE
+    //////////////
+    // instantiate and position the gui //
+    guiImage = new ofxDatGui();
+    guiImage->setPosition(guiVideo->getPosition().x, guiVideo->getPosition().y+guiVideo->getHeight()+10);
+    guiImage->setWidth(guiVideo->getWidth());
+    
+    // adding the optional header allows you to drag the gui around //
+    guiImage->addHeader("Image Controls")->setBackgroundColor(ofColor(127));
+    
+    //slavesListFolder = guiSlaves->addFolder("Slaves List", ofColor::red);
+    ofColor c = ofColor(ofColor::blueViolet);
+    guiImage->addButton("Play")->setStripe(c, 5);
+    guiImage->addButton("Pause")->setStripe(c, 5);
+    guiImage->addButton("Stop")->setStripe(c, 5);
+    guiImage->addButton("load image 1")->setStripe(c, 5);
+    guiImage->addButton("load image 2")->setStripe(c, 5);
+    guiImage->addButton("load folder")->setStripe(c, 5);
+    
+    guiImage->onButtonEvent(this, &ofApp::onImageButtonEvent);
 }
 

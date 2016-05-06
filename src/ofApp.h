@@ -43,11 +43,13 @@ class ofApp : public ofBaseApp
     ofxDatGui*              guiMaster;
     ofxDatGui*              guiScreen;
     ofxDatGui*              guiVideo;
+    ofxDatGui*              guiImage;
     
     void                    setupGuiSlaves();
     void                    setupGuiMaster();
     void                    setupGuiScreen();
     void                    setupGuiVideo();
+    void                     setupGuiImage();
     
     ofxDatGuiFolder*        slavesListFolder;
     int                     getIdFromSlave(int i);
@@ -61,8 +63,12 @@ class ofApp : public ofBaseApp
     ofMutex             tcpLock;
     void                handleTcpOut();
     void                sendTcpMessageToAll(string mess);
+    void                sendTcpMessageToSlave(string mess, int id);
     void                handleTcpIn();
     float               timeLastConnection;
+    
+    void                sendMessageToSlavesFolder(string messageWithoutId);
+    void                sendMessageToSlavesFolderWithActiveInfo(string messageWithoutId);
 
     // IP
     vector<string>      getDevicesIPs();
