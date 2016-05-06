@@ -17,26 +17,31 @@ typedef struct
 
 class ofApp : public ofBaseApp
 {
-	public:
-        void setup();
-        void draw();
-        void update();
-        void exit();
+public:
+    void setup();
+    void draw();
+    void update();
+    void exit();
     
-        bool mFullscreen;
-        void refreshWindow();
-        void toggleFullscreen();
-
-        void keyPressed(int key);
-        void onButtonEvent(ofxDatGuiButtonEvent e);
-        void onSliderEvent(ofxDatGuiSliderEvent e);
-        void onTextInputEvent(ofxDatGuiTextInputEvent e);
-        void on2dPadEvent(ofxDatGui2dPadEvent e);
-        void onDropdownEvent(ofxDatGuiDropdownEvent e);
-        void onColorPickerEvent(ofxDatGuiColorPickerEvent e);
-        void onMatrixEvent(ofxDatGuiMatrixEvent e);
+    bool mFullscreen;
+    void refreshWindow();
+    void toggleFullscreen();
     
+    void keyPressed(int key);
+    
+    void onSliderEvent(ofxDatGuiSliderEvent e){};
+    void onTextInputEvent(ofxDatGuiTextInputEvent e);
+    void on2dPadEvent(ofxDatGui2dPadEvent e){};
+    void onDropdownEvent(ofxDatGuiDropdownEvent e);
+    void onColorPickerEvent(ofxDatGuiColorPickerEvent e){};
+    void onMatrixEvent(ofxDatGuiMatrixEvent e){};
+    
+    void onMasterButtonEvent(ofxDatGuiButtonEvent e);
+    void onSlavesButtonEvent(ofxDatGuiButtonEvent e);
+    void onScreenButtonEvent(ofxDatGuiButtonEvent e);
+    void onVideoButtonEvent(ofxDatGuiButtonEvent e);
     void onImageButtonEvent(ofxDatGuiButtonEvent e);
+
     
     // GUI
     ofxDatGui*              guiSlaves;

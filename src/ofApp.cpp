@@ -1,40 +1,5 @@
 #include "ofApp.h"
 
-
-//-------------------------------------------------------------------------------
-string ofApp::getIP(string device)
-{
-    vector<string> list = LocalAddressGrabber :: availableList();
-    return LocalAddressGrabber :: getIpAddress(device);
-}
-
-
-//-------------------------------------------------------------------------------
-vector<string> ofApp::getDevicesIPs()
-{
-    vector<string> v = LocalAddressGrabber :: availableList();
-    cout << "....................................." << endl;
-    cout << " ...... NETWORK DEVICES AND IPs" << endl;
-    for(int i=0;i<v.size();i++)
-    {
-        networkIPs.push_back(LocalAddressGrabber :: getIpAddress(v[i]));
-        cout << " ... " << v[i] << " : " << networkIPs[i] << endl;
-    }
-    cout << "....................................." << endl;
-    return v;
-}
-
-//-------------------------------------------------------------------------------
-vector<string> ofApp::buildDevicesIPsString()
-{
-    vector<string> ndi;
-    for(int i=0;i<networkDevices.size();i++)
-    {
-        ndi.push_back(networkDevices[i] + " : " + networkIPs[i] );
-    }
-    return ndi;
-}
-
 //-------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------
@@ -55,7 +20,7 @@ void ofApp::setup()
     // DAT GUI
     // as we moved from ofxDatGui to ofxDatGui_PM
     ofxDatGui::setAssetPath("");
-
+    
     // GUI MASTER
     setupGuiMaster();
     
@@ -68,13 +33,13 @@ void ofApp::setup()
     
     // GUI SCREEN
     setupGuiScreen();
-
+    
     // GUI VIDEO
     setupGuiVideo();
     
     // GUI IMAGE
     setupGuiImage();
-
+    
     // launch the app //
     mFullscreen = false;
     refreshWindow();
@@ -108,14 +73,14 @@ void ofApp::update()
 //-------------------------------------------------------------------------------
 void ofApp::draw()
 {
-
+    
 }
 
 //--------------------------------------------------------------
 void ofApp::exit()
 {
     cout << "Trying to close TCP Server on exit() !!" << endl;
-
+    
     tcpLock.lock();
     
     if(tcpServer.disconnectAllClients())
@@ -133,447 +98,44 @@ void ofApp::exit()
     {
         cout << "Couldn't Disconect All clients !! ERROR " << endl;
     }
-
+    
     tcpLock.unlock();
     
 }
 
+# pragma mark ---------- Auxiliari methods ----------
 //-------------------------------------------------------------------------------
-void ofApp::onSliderEvent(ofxDatGuiSliderEvent e)
+string ofApp::getIP(string device)
 {
-    cout << "onSliderEvent: " << e.target->getLabel() << " "; e.target->printValue();
-    //if (e.target->is("datgui opacity"))guiSlaves->setOpacity(e.scale);
+    vector<string> list = LocalAddressGrabber :: availableList();
+    return LocalAddressGrabber :: getIpAddress(device);
 }
 
 
 //-------------------------------------------------------------------------------
-int ofApp::getIdFromSlave(int i)
+vector<string> ofApp::getDevicesIPs()
 {
-    ofxDatGuiToggle* t = slavesListFolder->getToggleAt(i);
-    string whichIdString = ofSplitString(t->getLabel()," ")[0];
-
-    return (ofToInt(whichIdString));
-}
-
-# pragma mark ---------- Button Events ----------
-
-//-------------------------------------------------------------------------------
-void ofApp::onButtonEvent(ofxDatGuiButtonEvent e)
-{
-//    cout << "onButtonEvent: " << e.target->getLabel() << " " << e.target->getEnabled() << endl;
-    
-    if(e.target->is("Ping all ¿?"))
+    vector<string> v = LocalAddressGrabber :: availableList();
+    cout << "....................................." << endl;
+    cout << " ...... NETWORK DEVICES AND IPs" << endl;
+    for(int i=0;i<v.size();i++)
     {
-        sendTCPPingAll();
+        networkIPs.push_back(LocalAddressGrabber :: getIpAddress(v[i]));
+        cout << " ... " << v[i] << " : " << networkIPs[i] << endl;
     }
-    else if(e.target->is("Select All"))
-    {
-        int num = slavesListFolder->size();
-        for(int i=0;i<num;i++)
-        {
-            ofxDatGuiToggle* t = slavesListFolder->getToggleAt(i);
-            t->setEnabled(true);
-        }
-    }
-    else if(e.target->is("Select None"))
-    {
-        int num = slavesListFolder->size();
-        for(int i=0;i<num;i++)
-        {
-            ofxDatGuiToggle* t = slavesListFolder->getToggleAt(i);
-            t->setEnabled(false);
-        }
-        
-    }
-    else if(e.target->is("Test"))
-    {
-        sendMessageToSlavesFolderWithActiveInfo("test");
-    }
-    else if(e.target->is("Debug"))
-    {
-        sendMessageToSlavesFolderWithActiveInfo("debug");
-    }
-    else if(e.target->is("Reboot"))
-    {
-        sendMessageToSlavesFolder("reboot");
-    }
-    else if(e.target->is("Shutdown"))
-    {
-        sendMessageToSlavesFolder("shutdown");
-    }
-    else if(e.target->is("Exit"))
-    {
-        sendMessageToSlavesFolder("exit");
-    }
-    else if(e.target->is("Save Config"))
-    {
-        saveConfig();
-    }
-    
-    /// GUI MAIN
-    /////////////
-    
-    else if(e.target->is("Reset TCP Connection"))
-    {
-        ofxDatGuiTextInput* i = (ofxDatGuiTextInput*) guiMaster->getTextInput("TCP Port");
-        resetTCPConnection(ofToInt(i->getText()));
-    }
-    
-
-    /// GUI SCREEN
-    ///////////////
-    
-    else if(e.target->is("Use FBO ?"))
-    {
-        string toggleState = ((e.target->getEnabled()) ? "1" : "0");
-        sendMessageToSlavesFolder("fbo " + toggleState);
-    }
-    else if(e.target->is("Use Homography ?"))
-    {
-        string toggleState = ((e.target->getEnabled()) ? "1" : "0");
-        sendMessageToSlavesFolder("homography " + toggleState);
-    }
-    else if(e.target->is("Edit Quad"))
-    {
-        string toggleState = ((e.target->getEnabled()) ? "1" : "0");
-        sendMessageToSlavesFolder("editQuad " + toggleState);
-    }
-    else if(e.target->is("Next Corner"))
-    {
-        sendMessageToSlavesFolder("nextQuadPoint");
-    }
-    else if(e.target->is("Previous Corner"))
-    {
-        sendMessageToSlavesFolder("preQuadPoint");
-    }
-    else if(e.target->is("Reset Quad"))
-    {
-        sendMessageToSlavesFolder("resetQuad");
-    }
-    else if(e.target->is("Save Quad"))
-    {
-        sendMessageToSlavesFolder("saveQuad");
-    }
-
-    
-    /// GUI SCREEN
-    ///////////////
-    
-    else if(e.target->is("Play Video"))
-    {
-        cout << "Do something when : --Play Video-- is pressed !! TO DO !! " << endl;
-    }
-    else if(e.target->is("Stop Video"))
-    {
-        cout << "Do something when : --Stop Video-- is pressed !! TO DO !! " << endl;
-    }
-    else if(e.target->is("Pause Video"))
-    {
-        cout << "Do something when : --Pause Video-- is pressed !! TO DO !! " << endl;
-    }
-    else if(e.target->is("Restart Video"))
-    {
-        cout << "Do something when : --Restart Video-- is pressed !! TO DO !! " << endl;
-    }
-
-
-
+    cout << "....................................." << endl;
+    return v;
 }
 
 //-------------------------------------------------------------------------------
-void ofApp::onImageButtonEvent(ofxDatGuiButtonEvent e)
+vector<string> ofApp::buildDevicesIPsString()
 {
-    cout << "onImageButtonEvent: " << e.target->getLabel() << " " << e.target->getEnabled() << endl;
-    
-    if(e.target->is("play"))
+    vector<string> ndi;
+    for(int i=0;i<networkDevices.size();i++)
     {
-        
+        ndi.push_back(networkDevices[i] + " : " + networkIPs[i] );
     }
-    else if(e.target->is("pause"))
-    {
-        
-    }
-    else if(e.target->is("stop"))
-    {
-        sendMessageToSlavesFolder("loadImage noimage 2");
-    }
-    else if(e.target->is("load image 1"))
-    {
-        sendMessageToSlavesFolder("loadImage test/testImage1.jpg 5");
-    }
-    else if(e.target->is("load image 2"))
-    {
-        sendMessageToSlavesFolder("loadImage test/testImage2.jpg 2");
-    }
-    else if(e.target->is("load folder"))
-    {
-        sendMessageToSlavesFolder("loadFolder test 2");
-    }
-
-}
-
-//-------------------------------------------------------------------------------
-void ofApp::onTextInputEvent(ofxDatGuiTextInputEvent e)
-{
-    //    cout << "onTextInputEvent: " << e.target->getLabel() << " " << e.target->getText() << endl;
-    if(e.target->is("TCP Port"))
-    {
-        ofxDatGuiTextInput* i = (ofxDatGuiTextInput*) guiMaster->getTextInput("TCP Port");
-        resetTCPConnection(ofToInt(i->getText()));
-    }
-    else if(e.target->is("Load Video"))
-    {
-        cout << "Do something when : --Load Video-- is pressed !! TO DO !! " << endl;
-    }
-}
-
-//-------------------------------------------------------------------------------
-void ofApp::on2dPadEvent(ofxDatGui2dPadEvent e)
-{
-    //    cout << "on2dPadEvent: " << e.target->getLabel() << " " << e.x << ":" << e.y << endl;
-}
-
-//-------------------------------------------------------------------------------
-void ofApp::onDropdownEvent(ofxDatGuiDropdownEvent e)
-{
-    deviceSelected=e.target->getSelectedIndex();
-}
-
-//-------------------------------------------------------------------------------
-void ofApp::onColorPickerEvent(ofxDatGuiColorPickerEvent e)
-{
-    //    cout << "onColorPickerEvent: " << e.target->getLabel() << " " << e.target->getColor() << endl;
-    //    ofSetBackgroundColor(e.color);
-}
-
-//-------------------------------------------------------------------------------
-void ofApp::onMatrixEvent(ofxDatGuiMatrixEvent e)
-{
-    //    cout << "onMatrixEvent " << e.child << " : " << e.enabled << endl;
-    //    cout << "onMatrixEvent " << e.target->getLabel() << " : " << e.target->getSelected().size() << endl;
-}
-#pragma mark ---------- System events ----------
-//-------------------------------------------------------------------------------
-void ofApp::keyPressed(int key)
-{
-    if (key == 'f') {
-        toggleFullscreen();
-    }
-    
-    
-    int quadStep = 1;
-    if(ofGetKeyPressed(OF_KEY_SHIFT)) quadStep = 5;
-    /// QUAD WARPING
-    ////////////////
-    if (key == OF_KEY_LEFT)
-    {
-        sendMessageToSlavesFolder("movePointLeft " + ofToString(quadStep));
-    }
-    else if (key == OF_KEY_RIGHT)
-    {
-        sendMessageToSlavesFolder("movePointRight " + ofToString(quadStep));
-    }
-    else if (key == OF_KEY_UP)
-    {
-        sendMessageToSlavesFolder("movePointUp " + ofToString(quadStep));
-    }
-    else if (key == OF_KEY_DOWN)
-    {
-        sendMessageToSlavesFolder("movePointDown " + ofToString(quadStep));
-    }
-
-    
-}
-
-//-------------------------------------------------------------------------------
-void ofApp::toggleFullscreen()
-{
-    mFullscreen = !mFullscreen;
-    refreshWindow();
-}
-
-//-------------------------------------------------------------------------------
-void ofApp::refreshWindow()
-{
-    ofSetFullscreen(mFullscreen);
-//    if (!mFullscreen) {
-//        ofSetWindowShape(1920, 1400);
-//        ofSetWindowPosition((ofGetScreenWidth()/2)-(1920/2), 0);
-//    }
-}
-
-//-------------------------------------------------------------------------------
-// TCP
-//-------------------------------------------------------------------------------
-///--------------------------------------------------------------
-
-# pragma mark ---------- TCP ----------
-
-void ofApp::handleTcpOut()
-{
-    
-    if(!tcpServer.isConnected())
-    {
-        return;
-    }
-    
-    
-    int numMessages = 0;
-    
-    /*
-    
-    //any bangs that came our way this frame send them out too
-    for(int i = 0; i < bangsReceived.size(); i++)
-    {
-        cout << "TCP FOUND BANGS! oscAddress : " << bangsReceived[i].getAddress() << " :: " << bangsReceived[i].getArgAsString(0) << endl;
-        string addressWithoutSlash = bangsReceived[i].getAddress().substr(1,bangsReceived[i].getAddress().size()-1);
-        // SPLIT STRING ?
-        string buf; // Have a buffer string
-        stringstream ss(addressWithoutSlash); // Insert the string into a stream
-        vector<string> tokens; // Create vector to hold our words
-        while (ss >> buf)
-        {
-            tokens.push_back(buf);
-        }
-        
-        // send a TCP MESSAGE FOR EVERY ADDRESS ITEM
-        for(int j=0;j<tokens.size();j++)
-        {
-            string messageTcp = tokens[j] + " " + bangsReceived[i].getArgAsString(0);
-            sendTcpMessageToAll(messageTcp);
-        }
-        
-    }
-    */
-}
-
-//-------------------------------------------------------------------------------
-void ofApp::handleTcpIn()
-{
-    if((!tcpServer.isConnected()))
-    {
-        return;
-    }
-    
-    for(int i = 0; i < tcpServer.getLastID(); i++)
-    {
-        if( !tcpServer.isClientConnected(i) ) continue;
-        
-        string str = tcpServer.receive(i);
-        
-        if(str.length() > 0)
-        {
-            
-            vector<string> tokens = ofSplitString(str, " ");
-            
-            cout << "Received TCP message : " << str << endl;
-            
-            if(tokens[0]=="pong")
-            {
-                //slavesListFolder->collapse();
-
-                int theId = ofToInt(tokens[1]);
-                cout << "Hi !! I got a PONG TCP message !! >> " << str <<" <<  from client : " << i << " with ID : " << theId << endl;
-
-                // to slave info
-                slaveInfo s;
-                s.id = theId;
-                if(tokens.size()>=2)
-                {
-                    s.name = tokens[2];
-                    s.ip = tcpServer.getClientIP(i);
-                }
-                else
-                {
-                    s.name = "defaultName";
-                    s.ip = tcpServer.getClientIP(i);
-                }
-                
-                
-                ofxDatGuiToggle* tog = slavesListFolder->addToggle(ofToString(s.id) + " " +s.name + " " + s.ip,true);
-                tog->setStripe(ofColor(0,128,255), 5);
-                tog->setBackgroundColor(ofColor(32));
-                // stupid hack to
-                guiSlaves->setPosition(guiSlaves->getPosition().x,guiSlaves->getPosition().y);
-
-                s.toggle = tog;
-                slavesListFolder->expand();
-            }
-            if(tokens[0]=="awake")
-            {
-                cout << "Received : awake . So sending ping to all !! " << endl;
-                sendTCPPingAll();
-            }
-        }
-        
-    }
-}
-
-//-------------------------------------------------------------------------------
-void ofApp::sendTcpMessageToAll(string mess)
-{
-    if(tcpServer.isConnected())
-    {
-
-        /// SEND TO ALL TCP CLIENTS !!
-        //for each client lets send them a message
-        for(int j = 0; j < tcpServer.getLastID(); j++)
-        {
-            if( !tcpServer.isClientConnected(j) )
-            {
-                continue;
-            }
-            tcpServer.send(j,mess);
-            cout << "TCP Send : " << mess << endl;
-        }
-    }
-}
-
-//--------------------------------------------------------------
-void ofApp::sendTcpMessageToSlave(string mess, int pos)
-{
-    if(tcpServer.isConnected())
-    {
-        if( tcpServer.isClientConnected(pos))
-        {
-            tcpServer.send(pos,mess);
-            cout << "TCP Send : " << mess << endl;
-        }
-    }
-}
-
-//--------------------------------------------------------------
-void ofApp::sendMessageToSlavesFolder(string m)
-{
-    int num = slavesListFolder->size();
-    for(int i=0;i<num;i++)
-    {
-        ofxDatGuiToggle* t = slavesListFolder->getToggleAt(i);
-        if(t->getEnabled()){
-            string messageTcp = ofToString(getIdFromSlave(i)) + " " + m;
-            sendTcpMessageToSlave(messageTcp, i);
-        }
-    }
-}
-
-//--------------------------------------------------------------
-void ofApp::sendMessageToSlavesFolderWithActiveInfo(string m)
-{
-    int num = slavesListFolder->size();
-    for(int i=0;i<num;i++)
-    {
-        ofxDatGuiToggle* t = slavesListFolder->getToggleAt(i);
-        string messageTcp = ofToString(getIdFromSlave(i)) + " " + m + ((t->getEnabled()) ? " 1" : " 0");
-//        if(t->getEnabled())
-//        {
-//            messageTcp=messageTcp + " 1";
-//        }
-//        else
-//        {
-//            messageTcp=messageTcp + " 0";
-//        }
-        sendTcpMessageToSlave(messageTcp, i);
-    }
+    return ndi;
 }
 
 //--------------------------------------------------------------
@@ -625,11 +187,417 @@ void ofApp::readConfig()
     
 }
 
+//-------------------------------------------------------------------------------
+int ofApp::getIdFromSlave(int i)
+{
+    ofxDatGuiToggle* t = slavesListFolder->getToggleAt(i);
+    string whichIdString = ofSplitString(t->getLabel()," ")[0];
+    
+    return (ofToInt(whichIdString));
+}
+
+# pragma mark ---------- Button Events ----------
+//-------------------------------------------------------------------------------
+void ofApp::onMasterButtonEvent(ofxDatGuiButtonEvent e)
+{
+    if(e.target->is("Reset TCP Connection"))
+    {
+        ofxDatGuiTextInput* i = (ofxDatGuiTextInput*) guiMaster->getTextInput("TCP Port");
+        resetTCPConnection(ofToInt(i->getText()));
+    }
+}
+
+//-------------------------------------------------------------------------------
+void ofApp::onSlavesButtonEvent(ofxDatGuiButtonEvent e)
+{
+    if(e.target->is("Ping all ¿?"))
+    {
+        sendTCPPingAll();
+    }
+    else if(e.target->is("Select All"))
+    {
+        int num = slavesListFolder->size();
+        for(int i=0;i<num;i++)
+        {
+            ofxDatGuiToggle* t = slavesListFolder->getToggleAt(i);
+            t->setEnabled(true);
+        }
+    }
+    else if(e.target->is("Select None"))
+    {
+        int num = slavesListFolder->size();
+        for(int i=0;i<num;i++)
+        {
+            ofxDatGuiToggle* t = slavesListFolder->getToggleAt(i);
+            t->setEnabled(false);
+        }
+        
+    }
+    else if(e.target->is("Test"))
+    {
+        sendMessageToSlavesFolderWithActiveInfo("test");
+    }
+    else if(e.target->is("Debug"))
+    {
+        sendMessageToSlavesFolderWithActiveInfo("debug");
+    }
+    else if(e.target->is("Reboot"))
+    {
+        sendMessageToSlavesFolder("reboot");
+    }
+    else if(e.target->is("Shutdown"))
+    {
+        sendMessageToSlavesFolder("shutdown");
+    }
+    else if(e.target->is("Exit"))
+    {
+        sendMessageToSlavesFolder("exit");
+    }
+    else if(e.target->is("Save Config"))
+    {
+        saveConfig();
+    }
+}
+
+//-------------------------------------------------------------------------------
+void ofApp::onScreenButtonEvent(ofxDatGuiButtonEvent e)
+{
+    if(e.target->is("Use FBO ?"))
+    {
+        string toggleState = ((e.target->getEnabled()) ? "1" : "0");
+        sendMessageToSlavesFolder("fbo " + toggleState);
+    }
+    else if(e.target->is("Use Homography ?"))
+    {
+        string toggleState = ((e.target->getEnabled()) ? "1" : "0");
+        sendMessageToSlavesFolder("homography " + toggleState);
+    }
+    else if(e.target->is("Edit Quad"))
+    {
+        string toggleState = ((e.target->getEnabled()) ? "1" : "0");
+        sendMessageToSlavesFolder("editQuad " + toggleState);
+    }
+    else if(e.target->is("Next Corner"))
+    {
+        sendMessageToSlavesFolder("nextQuadPoint");
+    }
+    else if(e.target->is("Previous Corner"))
+    {
+        sendMessageToSlavesFolder("preQuadPoint");
+    }
+    else if(e.target->is("Reset Quad"))
+    {
+        sendMessageToSlavesFolder("resetQuad");
+    }
+    else if(e.target->is("Save Quad"))
+    {
+        sendMessageToSlavesFolder("saveQuad");
+    }
+}
+
+//-------------------------------------------------------------------------------
+void ofApp::onVideoButtonEvent(ofxDatGuiButtonEvent e)
+{
+    if(e.target->is("Play Video"))
+    {
+        cout << "Do something when : --Play Video-- is pressed !! TO DO !! " << endl;
+    }
+    else if(e.target->is("Stop Video"))
+    {
+        cout << "Do something when : --Stop Video-- is pressed !! TO DO !! " << endl;
+    }
+    else if(e.target->is("Pause Video"))
+    {
+        cout << "Do something when : --Pause Video-- is pressed !! TO DO !! " << endl;
+    }
+    else if(e.target->is("Restart Video"))
+    {
+        cout << "Do something when : --Restart Video-- is pressed !! TO DO !! " << endl;
+    }
+}
+
+//-------------------------------------------------------------------------------
+void ofApp::onImageButtonEvent(ofxDatGuiButtonEvent e)
+{
+    cout << "onImageButtonEvent: " << e.target->getLabel() << " " << e.target->getEnabled() << endl;
+    
+    if(e.target->is("play"))
+    {
+        
+    }
+    else if(e.target->is("pause"))
+    {
+        
+    }
+    else if(e.target->is("stop"))
+    {
+        sendMessageToSlavesFolder("loadImage noimage 2");
+    }
+    else if(e.target->is("load image 1"))
+    {
+        sendMessageToSlavesFolder("loadImage test/testImage1.jpg 5");
+    }
+    else if(e.target->is("load image 2"))
+    {
+        sendMessageToSlavesFolder("loadImage test/testImage2.jpg 2");
+    }
+    else if(e.target->is("load folder"))
+    {
+        sendMessageToSlavesFolder("loadFolder test 2");
+    }
+    
+}
+
+# pragma mark ---------- Other GUI events ----------
+
+//-------------------------------------------------------------------------------
+void ofApp::onTextInputEvent(ofxDatGuiTextInputEvent e)
+{
+    //    cout << "onTextInputEvent: " << e.target->getLabel() << " " << e.target->getText() << endl;
+    if(e.target->is("TCP Port"))
+    {
+        ofxDatGuiTextInput* i = (ofxDatGuiTextInput*) guiMaster->getTextInput("TCP Port");
+        resetTCPConnection(ofToInt(i->getText()));
+    }
+    else if(e.target->is("Load Video"))
+    {
+        cout << "Do something when : --Load Video-- is pressed !! TO DO !! " << endl;
+    }
+}
+
+//-------------------------------------------------------------------------------
+void ofApp::onDropdownEvent(ofxDatGuiDropdownEvent e)
+{
+    deviceSelected=e.target->getSelectedIndex();
+}
+
+#pragma mark ---------- System events ----------
+//-------------------------------------------------------------------------------
+void ofApp::keyPressed(int key)
+{
+    if (key == 'f') {
+        toggleFullscreen();
+    }
+    
+    
+    int quadStep = 1;
+    if(ofGetKeyPressed(OF_KEY_SHIFT)) quadStep = 5;
+    /// QUAD WARPING
+    ////////////////
+    if (key == OF_KEY_LEFT)
+    {
+        sendMessageToSlavesFolder("movePointLeft " + ofToString(quadStep));
+    }
+    else if (key == OF_KEY_RIGHT)
+    {
+        sendMessageToSlavesFolder("movePointRight " + ofToString(quadStep));
+    }
+    else if (key == OF_KEY_UP)
+    {
+        sendMessageToSlavesFolder("movePointUp " + ofToString(quadStep));
+    }
+    else if (key == OF_KEY_DOWN)
+    {
+        sendMessageToSlavesFolder("movePointDown " + ofToString(quadStep));
+    }
+}
+
+//-------------------------------------------------------------------------------
+void ofApp::toggleFullscreen()
+{
+    mFullscreen = !mFullscreen;
+    refreshWindow();
+}
+
+//-------------------------------------------------------------------------------
+void ofApp::refreshWindow()
+{
+    ofSetFullscreen(mFullscreen);
+    //    if (!mFullscreen) {
+    //        ofSetWindowShape(1920, 1400);
+    //        ofSetWindowPosition((ofGetScreenWidth()/2)-(1920/2), 0);
+    //    }
+}
+
+//-------------------------------------------------------------------------------
+// TCP
+//-------------------------------------------------------------------------------
+///--------------------------------------------------------------
+
+# pragma mark ---------- TCP ----------
+
+void ofApp::handleTcpOut()
+{
+    
+    if(!tcpServer.isConnected())
+    {
+        return;
+    }
+    
+    
+    int numMessages = 0;
+    
+    /*
+     
+     //any bangs that came our way this frame send them out too
+     for(int i = 0; i < bangsReceived.size(); i++)
+     {
+     cout << "TCP FOUND BANGS! oscAddress : " << bangsReceived[i].getAddress() << " :: " << bangsReceived[i].getArgAsString(0) << endl;
+     string addressWithoutSlash = bangsReceived[i].getAddress().substr(1,bangsReceived[i].getAddress().size()-1);
+     // SPLIT STRING ?
+     string buf; // Have a buffer string
+     stringstream ss(addressWithoutSlash); // Insert the string into a stream
+     vector<string> tokens; // Create vector to hold our words
+     while (ss >> buf)
+     {
+     tokens.push_back(buf);
+     }
+     
+     // send a TCP MESSAGE FOR EVERY ADDRESS ITEM
+     for(int j=0;j<tokens.size();j++)
+     {
+     string messageTcp = tokens[j] + " " + bangsReceived[i].getArgAsString(0);
+     sendTcpMessageToAll(messageTcp);
+     }
+     
+     }
+     */
+}
+
+//-------------------------------------------------------------------------------
+void ofApp::handleTcpIn()
+{
+    if((!tcpServer.isConnected()))
+    {
+        return;
+    }
+    
+    for(int i = 0; i < tcpServer.getLastID(); i++)
+    {
+        if( !tcpServer.isClientConnected(i) ) continue;
+        
+        string str = tcpServer.receive(i);
+        
+        if(str.length() > 0)
+        {
+            
+            vector<string> tokens = ofSplitString(str, " ");
+            
+            cout << "Received TCP message : " << str << endl;
+            
+            if(tokens[0]=="pong")
+            {
+                //slavesListFolder->collapse();
+                
+                int theId = ofToInt(tokens[1]);
+                cout << "Hi !! I got a PONG TCP message !! >> " << str <<" <<  from client : " << i << " with ID : " << theId << endl;
+                
+                // to slave info
+                slaveInfo s;
+                s.id = theId;
+                if(tokens.size()>=2)
+                {
+                    s.name = tokens[2];
+                    s.ip = tcpServer.getClientIP(i);
+                }
+                else
+                {
+                    s.name = "defaultName";
+                    s.ip = tcpServer.getClientIP(i);
+                }
+                
+                
+                ofxDatGuiToggle* tog = slavesListFolder->addToggle(ofToString(s.id) + " " +s.name + " " + s.ip,true);
+                tog->setStripe(ofColor(0,128,255), 5);
+                tog->setBackgroundColor(ofColor(32));
+                // stupid hack to
+                guiSlaves->setPosition(guiSlaves->getPosition().x,guiSlaves->getPosition().y);
+                
+                s.toggle = tog;
+                slavesListFolder->expand();
+            }
+            if(tokens[0]=="awake")
+            {
+                cout << "Received : awake . So sending ping to all !! " << endl;
+                sendTCPPingAll();
+            }
+        }
+        
+    }
+}
+
+//-------------------------------------------------------------------------------
+void ofApp::sendTcpMessageToAll(string mess)
+{
+    if(tcpServer.isConnected())
+    {
+        
+        /// SEND TO ALL TCP CLIENTS !!
+        //for each client lets send them a message
+        for(int j = 0; j < tcpServer.getLastID(); j++)
+        {
+            if( !tcpServer.isClientConnected(j) )
+            {
+                continue;
+            }
+            tcpServer.send(j,mess);
+            cout << "TCP Send : " << mess << endl;
+        }
+    }
+}
+
+//--------------------------------------------------------------
+void ofApp::sendTcpMessageToSlave(string mess, int pos)
+{
+    if(tcpServer.isConnected())
+    {
+        if( tcpServer.isClientConnected(pos))
+        {
+            tcpServer.send(pos,mess);
+            cout << "TCP Send : " << mess << endl;
+        }
+    }
+}
+
+//--------------------------------------------------------------
+void ofApp::sendMessageToSlavesFolder(string m)
+{
+    int num = slavesListFolder->size();
+    for(int i=0;i<num;i++)
+    {
+        ofxDatGuiToggle* t = slavesListFolder->getToggleAt(i);
+        if(t->getEnabled()){
+            string messageTcp = ofToString(getIdFromSlave(i)) + " " + m;
+            sendTcpMessageToSlave(messageTcp, i);
+        }
+    }
+}
+
+//--------------------------------------------------------------
+void ofApp::sendMessageToSlavesFolderWithActiveInfo(string m)
+{
+    int num = slavesListFolder->size();
+    for(int i=0;i<num;i++)
+    {
+        ofxDatGuiToggle* t = slavesListFolder->getToggleAt(i);
+        string messageTcp = ofToString(getIdFromSlave(i)) + " " + m + ((t->getEnabled()) ? " 1" : " 0");
+        //        if(t->getEnabled())
+        //        {
+        //            messageTcp=messageTcp + " 1";
+        //        }
+        //        else
+        //        {
+        //            messageTcp=messageTcp + " 0";
+        //        }
+        sendTcpMessageToSlave(messageTcp, i);
+    }
+}
+
 //--------------------------------------------------------------
 void ofApp::setupTCPConnection(int _port)
 {
     tcpLock.lock();
-
+    
     ofxDatGuiToggle* t = (ofxDatGuiToggle*)guiMaster->getToggle("TCP Connected");
     ofxDatGuiButton* r = (ofxDatGuiButton*)guiMaster->getButton("Reset TCP Connection");
     ofxDatGuiTextInput* i = (ofxDatGuiTextInput*)guiMaster->getTextInput("TCP Port");
@@ -638,7 +606,7 @@ void ofApp::setupTCPConnection(int _port)
     {
         cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << endl;
         isTcpConnected = tcpServer.setup(_port);
-
+        
         if (isTcpConnected)
         {
             cout << "TCP Server Setup. OK!! Port : " << _port << endl;
@@ -646,7 +614,7 @@ void ofApp::setupTCPConnection(int _port)
             t->setStripe(ofColor(0,225,0), 5);
             r->setStripe(ofColor(0,255,0), 5);
             i->setStripe(ofColor(0,255,0), 5);
-
+            
         }
         else
         {
@@ -655,15 +623,12 @@ void ofApp::setupTCPConnection(int _port)
             t->setStripe(ofColor(255,0,0), 5);
             r->setStripe(ofColor(255,0,0), 5);
             i->setStripe(ofColor(255,0,0), 5);
-
+            
         }
         t->setEnabled(isTcpConnected);
         cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << endl;
     }
     tcpLock.unlock();
-    
-    
-  
 }
 
 //--------------------------------------------------------------
@@ -696,6 +661,22 @@ void ofApp::resetTCPConnection(int _port)
         cout << "oo Couldn't Disconect All clients !! ERROR " << endl;
     }
     tcpLock.unlock();
+}
+
+//--------------------------------------------------------------
+void ofApp::sendTCPPingAll()
+{
+    if(tcpServer.isConnected())
+    {
+        string messageTcp = "all ping";
+        sendTcpMessageToAll(messageTcp);
+        cout << "Sending PING to ALL clients" << endl;
+        
+        slavesListFolder->clear();
+        slavesListFolder->expand();
+        
+        guiSlaves->setPosition(guiSlaves->getPosition().x,guiSlaves->getPosition().y);
+    }
 }
 
 #pragma mark ---------- setup GUIS ----------
@@ -760,13 +741,13 @@ void ofApp::setupGuiSlaves()
     
     
     // once the gui has been assembled, register callbacks to listen for component specific events //
-    guiSlaves->onButtonEvent(this, &ofApp::onButtonEvent);
-    guiSlaves->onSliderEvent(this, &ofApp::onSliderEvent);
-    guiSlaves->onTextInputEvent(this, &ofApp::onTextInputEvent);
-    guiSlaves->on2dPadEvent(this, &ofApp::on2dPadEvent);
-    guiSlaves->onDropdownEvent(this, &ofApp::onDropdownEvent);
-    guiSlaves->onColorPickerEvent(this, &ofApp::onColorPickerEvent);
-    guiSlaves->onMatrixEvent(this, &ofApp::onMatrixEvent);
+    guiSlaves->onButtonEvent(this, &ofApp::onSlavesButtonEvent);
+    //    guiSlaves->onSliderEvent(this, &ofApp::onSliderEvent);
+    //    guiSlaves->onTextInputEvent(this, &ofApp::onTextInputEvent);
+    //    guiSlaves->on2dPadEvent(this, &ofApp::on2dPadEvent);
+    //    guiSlaves->onDropdownEvent(this, &ofApp::onDropdownEvent);
+    //    guiSlaves->onColorPickerEvent(this, &ofApp::onColorPickerEvent);
+    //    guiSlaves->onMatrixEvent(this, &ofApp::onMatrixEvent);
     
 }
 //--------------------------------------------------------------
@@ -806,7 +787,7 @@ void ofApp::setupGuiMaster()
     
     guiMaster->setPosition(10, 10);
     
-    guiMaster->onButtonEvent(this, &ofApp::onButtonEvent);
+    guiMaster->onButtonEvent(this, &ofApp::onMasterButtonEvent);
     guiMaster->onDropdownEvent(this, &ofApp::onDropdownEvent);
     guiMaster->onTextInputEvent(this, &ofApp::onTextInputEvent);
     
@@ -814,9 +795,6 @@ void ofApp::setupGuiMaster()
 //--------------------------------------------------------------
 void ofApp::setupGuiScreen()
 {
-    // GUI SLAVE
-    ///////////////
-    
     // instantiate and position the gui //
     guiScreen = new ofxDatGui();
     guiScreen->setPosition(guiSlaves->getPosition().x + guiSlaves->getWidth() +10, 10);
@@ -840,22 +818,12 @@ void ofApp::setupGuiScreen()
     
     
     // once the gui has been assembled, register callbacks to listen for component specific events //
-    guiScreen->onButtonEvent(this, &ofApp::onButtonEvent);
-//    guiSlaves->onSliderEvent(this, &ofApp::onSliderEvent);
-//    guiSlaves->onTextInputEvent(this, &ofApp::onTextInputEvent);
-//    guiSlaves->on2dPadEvent(this, &ofApp::on2dPadEvent);
-//    guiSlaves->onDropdownEvent(this, &ofApp::onDropdownEvent);
-//    guiSlaves->onColorPickerEvent(this, &ofApp::onColorPickerEvent);
-//    guiSlaves->onMatrixEvent(this, &ofApp::onMatrixEvent);
-
+    guiScreen->onButtonEvent(this, &ofApp::onScreenButtonEvent);
     
 }
 //--------------------------------------------------------------
 void ofApp::setupGuiVideo()
 {
-    // GUI SLAVE
-    ///////////////
-    
     // instantiate and position the gui //
     guiVideo = new ofxDatGui();
     guiVideo->setPosition(guiScreen->getPosition().x + guiScreen->getWidth() +10, 10);
@@ -875,13 +843,8 @@ void ofApp::setupGuiVideo()
     guiVideo->addBreak();
     
     // once the gui has been assembled, register callbacks to listen for component specific events //
-    guiVideo->onButtonEvent(this, &ofApp::onButtonEvent);
+    guiVideo->onButtonEvent(this, &ofApp::onVideoButtonEvent);
     guiVideo->onTextInputEvent(this, &ofApp::onTextInputEvent);
-    //    guiSlaves->onSliderEvent(this, &ofApp::onSliderEvent);
-    //    guiSlaves->on2dPadEvent(this, &ofApp::on2dPadEvent);
-    //    guiSlaves->onDropdownEvent(this, &ofApp::onDropdownEvent);
-    //    guiSlaves->onColorPickerEvent(this, &ofApp::onColorPickerEvent);
-    //    guiSlaves->onMatrixEvent(this, &ofApp::onMatrixEvent);
     
     
 }
@@ -908,20 +871,4 @@ void ofApp::setupGuiImage()
     guiImage->addButton("load folder")->setStripe(c, 5);
     
     guiImage->onButtonEvent(this, &ofApp::onImageButtonEvent);
-}
-
-//--------------------------------------------------------------
-void ofApp::sendTCPPingAll()
-{
-    if(tcpServer.isConnected())
-    {
-        string messageTcp = "all ping";
-        sendTcpMessageToAll(messageTcp);
-        cout << "Sending PING to ALL clients" << endl;
-        
-        slavesListFolder->clear();
-        slavesListFolder->expand();
-        
-        guiSlaves->setPosition(guiSlaves->getPosition().x,guiSlaves->getPosition().y);
-    }
 }
