@@ -1,9 +1,5 @@
 #include "ofApp.h"
 
-//-------------------------------------------------------------------------------
-//-------------------------------------------------------------------------------
-//-------------------------------------------------------------------------------
-
 # pragma mark ---------- Setup and loop ----------
 
 void ofApp::setup()
@@ -331,21 +327,20 @@ void ofApp::onImageButtonEvent(ofxDatGuiButtonEvent e)
     }
     else if(e.target->is("stop"))
     {
-        sendMessageToSlavesFolder("loadImage noimage 2");
+        sendMessageToSlavesFolder("loadImage noimage " + ofToString(guiImage->getSlider("Fade Time")->getValue()));
     }
     else if(e.target->is("load image 1"))
     {
-        sendMessageToSlavesFolder("loadImage test/testImage1.jpg 5");
+        sendMessageToSlavesFolder("loadImage test/testImage1.jpg " + ofToString(guiImage->getSlider("Fade Time")->getValue()));
     }
     else if(e.target->is("load image 2"))
     {
-        sendMessageToSlavesFolder("loadImage test/testImage2.jpg 2");
+        sendMessageToSlavesFolder("loadImage test/testImage2.jpg " + ofToString(guiImage->getSlider("Fade Time")->getValue()));
     }
     else if(e.target->is("load folder"))
     {
-        sendMessageToSlavesFolder("loadFolder test 2");
+        sendMessageToSlavesFolder("loadFolder test " + ofToString(guiImage->getSlider("Fade Time")->getValue())+ " " + ofToString(guiImage->getSlider("SlideShow Time")->getValue()));
     }
-    
 }
 
 # pragma mark ---------- Other GUI events ----------
@@ -361,7 +356,8 @@ void ofApp::onTextInputEvent(ofxDatGuiTextInputEvent e)
     }
     else if(e.target->is("Load Video"))
     {
-        cout << "Do something when : --Load Video-- is pressed !! TO DO !! " << endl;
+        sendMessageToSlavesFolder("load " + e.target->getText() + " " + ofToString(guiVideo->getSlider("Fade Time")->getValue()));
+        //cout << "Do something when : --Load Video-- is pressed !! TO DO !! " << endl;
     }
 }
 
@@ -742,12 +738,6 @@ void ofApp::setupGuiSlaves()
     
     // once the gui has been assembled, register callbacks to listen for component specific events //
     guiSlaves->onButtonEvent(this, &ofApp::onSlavesButtonEvent);
-    //    guiSlaves->onSliderEvent(this, &ofApp::onSliderEvent);
-    //    guiSlaves->onTextInputEvent(this, &ofApp::onTextInputEvent);
-    //    guiSlaves->on2dPadEvent(this, &ofApp::on2dPadEvent);
-    //    guiSlaves->onDropdownEvent(this, &ofApp::onDropdownEvent);
-    //    guiSlaves->onColorPickerEvent(this, &ofApp::onColorPickerEvent);
-    //    guiSlaves->onMatrixEvent(this, &ofApp::onMatrixEvent);
     
 }
 //--------------------------------------------------------------
@@ -839,13 +829,13 @@ void ofApp::setupGuiVideo()
     guiVideo->addButton("Pause Video")->setStripe(c, 5);
     guiVideo->addButton("Restart Video")->setStripe(c, 5);
     guiVideo->addTextInput("Load Video","test.mov")->setStripe(c, 5);
+    guiVideo->addSlider("Fade Time", 0, 10);
     
     guiVideo->addBreak();
     
     // once the gui has been assembled, register callbacks to listen for component specific events //
     guiVideo->onButtonEvent(this, &ofApp::onVideoButtonEvent);
     guiVideo->onTextInputEvent(this, &ofApp::onTextInputEvent);
-    
     
 }
 
@@ -869,6 +859,8 @@ void ofApp::setupGuiImage()
     guiImage->addButton("load image 1")->setStripe(c, 5);
     guiImage->addButton("load image 2")->setStripe(c, 5);
     guiImage->addButton("load folder")->setStripe(c, 5);
+    guiImage->addSlider("Fade Time", 0, 10);
+    guiImage->addSlider("SlideShow Time", 0, 10);
     
     guiImage->onButtonEvent(this, &ofApp::onImageButtonEvent);
 }
