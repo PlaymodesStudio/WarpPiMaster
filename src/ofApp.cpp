@@ -297,22 +297,18 @@ void ofApp::onVideoButtonEvent(ofxDatGuiButtonEvent e)
     if(e.target->is("Play Video"))
     {
         sendMessageToSlavesFolder("playVideo");
-//        cout << "Do something when : --Play Video-- is pressed !! TO DO !! " << endl;
     }
     else if(e.target->is("Stop Video"))
     {
         sendMessageToSlavesFolder("stopVideo");
-//        cout << "Do something when : --Stop Video-- is pressed !! TO DO !! " << endl;
     }
     else if(e.target->is("Pause Video"))
     {
         sendMessageToSlavesFolder("pauseVideo");
-//        cout << "Do something when : --Pause Video-- is pressed !! TO DO !! " << endl;
     }
     else if(e.target->is("Restart Video"))
     {
         sendMessageToSlavesFolder("restartVideo");
-//        cout << "Do something when : --Restart Video-- is pressed !! TO DO !! " << endl;
     }
 }
 
@@ -329,18 +325,6 @@ void ofApp::onImageButtonEvent(ofxDatGuiButtonEvent e)
     {
         sendMessageToSlavesFolder("loadImage noimage " + ofToString(guiImage->getSlider("Fade Time")->getValue()));
     }
-//    else if(e.target->is("load image 1"))
-//    {
-//        sendMessageToSlavesFolder("loadImage test/testImage1.jpg " + ofToString(guiImage->getSlider("Fade Time")->getValue()));
-//    }
-//    else if(e.target->is("load image 2"))
-//    {
-//        sendMessageToSlavesFolder("loadImage test/testImage2.jpg " + ofToString(guiImage->getSlider("Fade Time")->getValue()));
-//    }
-//    else if(e.target->is("load folder"))
-//    {
-//        sendMessageToSlavesFolder("loadFolder test " + ofToString(guiImage->getSlider("Fade Time")->getValue())+ " " + ofToString(guiImage->getSlider("SlideShow Time")->getValue()));
-//    }
 }
 
 # pragma mark ---------- Other GUI events ----------
@@ -348,7 +332,6 @@ void ofApp::onImageButtonEvent(ofxDatGuiButtonEvent e)
 //-------------------------------------------------------------------------------
 void ofApp::onTextInputEvent(ofxDatGuiTextInputEvent e)
 {
-    //    cout << "onTextInputEvent: " << e.target->getLabel() << " " << e.target->getText() << endl;
     if(e.target->is("TCP Port"))
     {
         ofxDatGuiTextInput* i = (ofxDatGuiTextInput*) guiMaster->getTextInput("TCP Port");
@@ -357,17 +340,14 @@ void ofApp::onTextInputEvent(ofxDatGuiTextInputEvent e)
     else if(e.target->is("Load Video"))
     {
         sendMessageToSlavesFolder("loadVideo " + e.target->getText() + " " + ofToString(guiVideo->getSlider("Fade Time")->getValue()));
-        //cout << "Do something when : --Load Video-- is pressed !! TO DO !! " << endl;
     }
     else if(e.target->is("Load Image"))
     {
         sendMessageToSlavesFolder("loadImage " + e.target->getText() + " " + ofToString(guiImage->getSlider("Fade Time")->getValue()));
-        //cout << "Do something when : --Load Video-- is pressed !! TO DO !! " << endl;
     }
     else if(e.target->is("Load Folder"))
     {
         sendMessageToSlavesFolder("loadFolder " + e.target->getText() + " " + ofToString(guiImage->getSlider("Fade Time")->getValue())+ " " + ofToString(guiImage->getSlider("SlideShow Time")->getValue()));
-        //cout << "Do something when : --Load Video-- is pressed !! TO DO !! " << endl;
     }
 }
 
@@ -831,8 +811,6 @@ void ofApp::setupGuiVideo()
     // adding the optional header allows you to drag the gui around //
     guiVideo->addHeader("VIDEO")->setBackgroundColor(ofColor(127));
     
-    //slavesListFolder = guiSlaves->addFolder("Slaves List", ofColor::red);
-    
     ofColor c = ofColor(255,255,255);
     guiVideo->addButton("Play Video")->setStripe(c, 5);
     guiVideo->addButton("Stop Video")->setStripe(c, 5);
@@ -861,14 +839,10 @@ void ofApp::setupGuiImage()
     // adding the optional header allows you to drag the gui around //
     guiImage->addHeader("Image Controls")->setBackgroundColor(ofColor(127));
     
-    //slavesListFolder = guiSlaves->addFolder("Slaves List", ofColor::red);
     ofColor c = ofColor(ofColor::blueViolet);
     guiImage->addButton("Play")->setStripe(c, 5);
     guiImage->addButton("Stop")->setStripe(c, 5);
-//    guiImage->addButton("load image 1")->setStripe(c, 5);
-//    guiImage->addButton("load image 2")->setStripe(c, 5);
     guiImage->addTextInput("Load Image", "/test/testImage1.jpg")->setStripe(c, 5);
-//    guiImage->addButton("load folder")->setStripe(c, 5);
     guiImage->addTextInput("Load Folder", "test")->setStripe(c, 5);
     guiImage->addSlider("Fade Time", 0, 10);
     guiImage->addSlider("SlideShow Time", 0, 10);
