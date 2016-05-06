@@ -66,6 +66,7 @@ class ofApp : public ofBaseApp
     void                sendTcpMessageToSlave(string mess, int id);
     void                handleTcpIn();
     float               timeLastConnection;
+    void                sendTCPPingAll();
     
     void                sendMessageToSlavesFolder(string messageWithoutId);
     void                sendMessageToSlavesFolderWithActiveInfo(string messageWithoutId);
