@@ -296,19 +296,19 @@ void ofApp::onVideoButtonEvent(ofxDatGuiButtonEvent e)
 {
     if(e.target->is("Play Video"))
     {
-        sendMessageToSlavesFolder("playVideo");
+        sendMessageToSlavesFolder("playVideo " + ofToString(guiVideo->getSlider("Fade Time")->getValue()));
     }
     else if(e.target->is("Stop Video"))
     {
-        sendMessageToSlavesFolder("stopVideo");
+        sendMessageToSlavesFolder("stopVideo " + ofToString(guiVideo->getSlider("Fade Time")->getValue()));
     }
     else if(e.target->is("Pause Video"))
     {
-        sendMessageToSlavesFolder("pauseVideo");
+        sendMessageToSlavesFolder("pauseVideo " + ofToString(guiVideo->getSlider("Fade Time")->getValue()));
     }
     else if(e.target->is("Restart Video"))
     {
-        sendMessageToSlavesFolder("restartVideo");
+        sendMessageToSlavesFolder("restartVideo " + ofToString(guiVideo->getSlider("Fade Time")->getValue()));
     }
 }
 
@@ -319,11 +319,11 @@ void ofApp::onImageButtonEvent(ofxDatGuiButtonEvent e)
     
     if(e.target->is("play"))
     {
-        sendMessageToSlavesFolder("playImage");
+        sendMessageToSlavesFolder("playImage " + ofToString(guiImage->getSlider("Fade Time")->getValue()));
     }
     else if(e.target->is("stop"))
     {
-        sendMessageToSlavesFolder("loadImage noimage " + ofToString(guiImage->getSlider("Fade Time")->getValue()));
+        sendMessageToSlavesFolder("stopImage " + ofToString(guiImage->getSlider("Fade Time")->getValue()));
     }
 }
 
