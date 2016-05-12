@@ -272,22 +272,39 @@ void ofApp::onScreenButtonEvent(ofxDatGuiButtonEvent e)
     {
         string toggleState = ((e.target->getEnabled()) ? "1" : "0");
         sendMessageToSlavesFolder("editQuad " + toggleState);
+        
+        ofColor c;
+        //color change
+        if(toggleState == "1")
+            c = ofColor::darkGreen;
+        else
+            c = ofColor::darkRed;
+        
+        guiScreen->getToggle("Edit Quad")->setStripeColor(c);
+        guiScreen->getButton("Next Corner")->setStripeColor(c);
+        guiScreen->getButton("Previous Corner")->setStripeColor(c);
+        guiScreen->getButton("Reset Quad")->setStripeColor(c);
+        guiScreen->getButton("Save Quad")->setStripeColor(c);
+        
     }
-    else if(e.target->is("Next Corner"))
-    {
-        sendMessageToSlavesFolder("nextQuadPoint");
-    }
-    else if(e.target->is("Previous Corner"))
-    {
-        sendMessageToSlavesFolder("preQuadPoint");
-    }
-    else if(e.target->is("Reset Quad"))
-    {
-        sendMessageToSlavesFolder("resetQuad");
-    }
-    else if(e.target->is("Save Quad"))
-    {
-        sendMessageToSlavesFolder("saveQuad");
+    
+    if(guiScreen->getToggle("Edit Quad")->getEnabled()){
+        if(e.target->is("Next Corner"))
+        {
+            sendMessageToSlavesFolder("nextQuadPoint");
+        }
+        else if(e.target->is("Previous Corner"))
+        {
+            sendMessageToSlavesFolder("preQuadPoint");
+        }
+        else if(e.target->is("Reset Quad"))
+        {
+            sendMessageToSlavesFolder("resetQuad");
+        }
+        else if(e.target->is("Save Quad"))
+        {
+            sendMessageToSlavesFolder("saveQuad");
+        }
     }
 }
 
@@ -365,28 +382,40 @@ void ofApp::keyPressed(int key)
         toggleFullscreen();
     }
     
-    
-    int quadStep = 1;
-    if(ofGetKeyPressed(OF_KEY_SHIFT)) quadStep = 5;
-    /// QUAD WARPING
-    ////////////////
-    if (key == OF_KEY_LEFT)
-    {
-        sendMessageToSlavesFolder("movePointLeft " + ofToString(quadStep));
-    }
-    else if (key == OF_KEY_RIGHT)
-    {
-        sendMessageToSlavesFolder("movePointRight " + ofToString(quadStep));
-    }
-    else if (key == OF_KEY_UP)
-    {
-        sendMessageToSlavesFolder("movePointUp " + ofToString(quadStep));
-    }
-    else if (key == OF_KEY_DOWN)
-    {
-        sendMessageToSlavesFolder("movePointDown " + ofToString(quadStep));
+    if(guiScreen->getToggle("Edit Quad")->getEnabled()){
+        int quadStep = 1;
+        if(ofGetKeyPressed(OF_KEY_SHIFT)) quadStep = 5;
+        /// QUAD WARPING
+        ////////////////
+        if (key == OF_KEY_LEFT)
+        {
+            sendMessageToSlavesFolder("movePointLeft " + ofToString(quadStep));
+        }
+        else if (key == OF_KEY_RIGHT)
+        {
+            sendMessageToSlavesFolder("movePointRight " + ofToString(quadStep));
+        }
+        else if (key == OF_KEY_UP)
+        {
+            sendMessageToSlavesFolder("movePointUp " + ofToString(quadStep));
+        }
+        else if (key == OF_KEY_DOWN)
+        {
+            sendMessageToSlavesFolder("movePointDown " + ofToString(quadStep));
+        }
     }
 }
+
+//--------------------------------------------------------------
+void ofApp::mouseMoved(int x, int y)
+{
+    if(guiMaster->hitTest(ofPoint(x, y)) && !guiMaster->getFocused()) guiMaster->focus();
+    if(guiSlaves->hitTest(ofPoint(x, y)) && !guiSlaves->getFocused()) guiSlaves->focus();
+    if(guiScreen->hitTest(ofPoint(x, y)) && !guiScreen->getFocused()) guiScreen->focus();
+    if(guiVideo->hitTest(ofPoint(x, y)) && !guiVideo->getFocused()) guiVideo->focus();
+    if(guiImage->hitTest(ofPoint(x, y)) && !guiImage->getFocused()) guiImage->focus();
+}
+
 
 //-------------------------------------------------------------------------------
 void ofApp::toggleFullscreen()
@@ -788,13 +817,12 @@ void ofApp::setupGuiScreen()
     guiScreen->addToggle("Use FBO ?")->setStripe(c, 5);
     guiScreen->addToggle("Use Homography ?")->setStripe(c, 5);
     guiScreen->addBreak();
-    guiScreen->addToggle("Edit Quad")->setStripe(c, 5);
-    guiScreen->addButton("Next Corner")->setStripe(c, 5);
-    guiScreen->addButton("Previous Corner")->setStripe(c, 5);
+    guiScreen->addToggle("Edit Quad")->setStripe(ofColor::darkRed, 5);
+    guiScreen->addButton("Next Corner")->setStripe(ofColor::darkRed, 5);
+    guiScreen->addButton("Previous Corner")->setStripe(ofColor::darkRed, 5);
+    guiScreen->addButton("Reset Quad")->setStripe(ofColor::darkRed, 5);
+    guiScreen->addButton("Save Quad")->setStripe(ofColor::darkRed, 5);
     guiScreen->addLabel("Use arrow keys to move corners.")->setStripe(ofColor(128), 5);;
-    guiScreen->addBreak();
-    guiScreen->addButton("Reset Quad")->setStripe(c, 5);
-    guiScreen->addButton("Save Quad")->setStripe(c, 5);
     
     
     // once the gui has been assembled, register callbacks to listen for component specific events //
