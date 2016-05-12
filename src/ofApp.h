@@ -75,7 +75,6 @@ public:
     void                sendTCPPingAll();
     
     void                sendMessageToSlavesFolder(string messageWithoutId);
-    void                sendMessageToSlavesFolderWithActiveInfo(string messageWithoutId);
 
     // IP
     vector<string>      getDevicesIPs();

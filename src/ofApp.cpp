@@ -231,11 +231,13 @@ void ofApp::onSlavesButtonEvent(ofxDatGuiButtonEvent e)
     }
     else if(e.target->is("Test"))
     {
-        sendMessageToSlavesFolderWithActiveInfo("test");
+        string toggleState = ((e.target->getEnabled()) ? "1" : "0");
+        sendMessageToSlavesFolder("test " + toggleState);
     }
     else if(e.target->is("Debug"))
     {
-        sendMessageToSlavesFolderWithActiveInfo("debug");
+        string toggleState = ((e.target->getEnabled()) ? "1" : "0");
+        sendMessageToSlavesFolder("debug " + toggleState);
     }
     else if(e.target->is("Reboot"))
     {
@@ -588,25 +590,6 @@ void ofApp::sendMessageToSlavesFolder(string m)
     }
 }
 
-//--------------------------------------------------------------
-void ofApp::sendMessageToSlavesFolderWithActiveInfo(string m)
-{
-    int num = slavesListFolder->size();
-    for(int i=0;i<num;i++)
-    {
-        ofxDatGuiToggle* t = slavesListFolder->getToggleAt(i);
-        string messageTcp = ofToString(getIdFromSlave(i)) + " " + m + ((t->getEnabled()) ? " 1" : " 0");
-        //        if(t->getEnabled())
-        //        {
-        //            messageTcp=messageTcp + " 1";
-        //        }
-        //        else
-        //        {
-        //            messageTcp=messageTcp + " 0";
-        //        }
-        sendTcpMessageToSlave(messageTcp, i);
-    }
-}
 
 //--------------------------------------------------------------
 void ofApp::setupTCPConnection(int _port)
@@ -711,8 +694,8 @@ void ofApp::setupGuiSlaves()
     //slavesListFolder = guiSlaves->addFolder("Slaves List", ofColor::red);
     
     ofColor c = ofColor(255,255,255);
-    guiSlaves->addButton("Test")->setStripe(c, 5);
-    guiSlaves->addButton("Debug")->setStripe(c, 5);
+    guiSlaves->addToggle("Test")->setStripe(c, 5);
+    guiSlaves->addToggle("Debug")->setStripe(c, 5);
     guiSlaves->addButton("Reboot")->setStripe(c, 5);
     guiSlaves->addButton("Shutdown")->setStripe(c, 5);
     guiSlaves->addButton("Exit")->setStripe(c, 5);
