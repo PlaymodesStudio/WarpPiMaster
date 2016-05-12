@@ -524,7 +524,7 @@ void ofApp::handleTcpIn()
                 }
                 
                 
-                ofxDatGuiToggle* tog = slavesListFolder->addToggle(ofToString(s.id) + " " +s.name + " " + s.ip,true);
+                ofxDatGuiToggle* tog = slavesListFolder->addToggle(ofToString(i) + " " + ofToString(s.id) + " " +s.name + " " + s.ip,true);
                 tog->setStripe(ofColor(0,128,255), 5);
                 tog->setBackgroundColor(ofColor(32));
                 // stupid hack to
@@ -584,8 +584,8 @@ void ofApp::sendMessageToSlavesFolder(string m)
     {
         ofxDatGuiToggle* t = slavesListFolder->getToggleAt(i);
         if(t->getEnabled()){
-            string messageTcp = ofToString(getIdFromSlave(i)) + " " + m;
-            sendTcpMessageToSlave(messageTcp, i);
+            string messageTcp = "all " + m;
+            sendTcpMessageToSlave(messageTcp, getIdFromSlave(i));
         }
     }
 }
