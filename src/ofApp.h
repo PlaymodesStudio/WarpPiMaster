@@ -30,7 +30,7 @@ public:
     void keyPressed(int key);
     void mouseMoved(int x, int y);
     
-    void onSliderEvent(ofxDatGuiSliderEvent e){};
+    void onSliderEvent(ofxDatGuiSliderEvent e);
     void onTextInputEvent(ofxDatGuiTextInputEvent e);
     void on2dPadEvent(ofxDatGui2dPadEvent e){};
     void onDropdownEvent(ofxDatGuiDropdownEvent e);
@@ -42,6 +42,7 @@ public:
     void onScreenButtonEvent(ofxDatGuiButtonEvent e);
     void onVideoButtonEvent(ofxDatGuiButtonEvent e);
     void onImageButtonEvent(ofxDatGuiButtonEvent e);
+    void onDmxButtonEvent(ofxDatGuiButtonEvent e);
 
     
     // GUI
@@ -50,12 +51,16 @@ public:
     ofxDatGui*              guiScreen;
     ofxDatGui*              guiVideo;
     ofxDatGui*              guiImage;
+    ofxDatGui*              guiDmx;
+    ofxDatGui*              guiArtNet;
     
     void                    setupGuiSlaves();
     void                    setupGuiMaster();
     void                    setupGuiScreen();
     void                    setupGuiVideo();
-    void                     setupGuiImage();
+    void                    setupGuiImage();
+    void                    setupGuiDmx();
+    int                     lastDmxChannel;
     
     ofxDatGuiFolder*        slavesListFolder;
     int                     getIdFromSlave(int i);

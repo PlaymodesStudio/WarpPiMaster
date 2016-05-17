@@ -36,6 +36,9 @@ void ofApp::setup()
     // GUI IMAGE
     setupGuiImage();
     
+    // GUI DMX
+    setupGuiDmx();
+    
     // launch the app //
     mFullscreen = false;
     refreshWindow();
@@ -346,6 +349,21 @@ void ofApp::onImageButtonEvent(ofxDatGuiButtonEvent e)
     }
 }
 
+//-------------------------------------------------------------------------------
+void ofApp::onDmxButtonEvent(ofxDatGuiButtonEvent e)
+{
+    cout << "onImageButtonEvent: " << e.target->getLabel() << " " << e.target->getEnabled() << endl;
+    
+    if(e.target->is("play"))
+    {
+        sendMessageToSlavesFolder("playImage " + ofToString(guiImage->getSlider("Fade Time")->getValue()));
+    }
+    else if(e.target->is("stop"))
+    {
+        sendMessageToSlavesFolder("stopImage " + ofToString(guiImage->getSlider("Fade Time")->getValue()));
+    }
+}
+
 # pragma mark ---------- Other GUI events ----------
 
 //-------------------------------------------------------------------------------
@@ -374,6 +392,33 @@ void ofApp::onTextInputEvent(ofxDatGuiTextInputEvent e)
 void ofApp::onDropdownEvent(ofxDatGuiDropdownEvent e)
 {
     deviceSelected=e.target->getSelectedIndex();
+}
+
+void ofApp::onSliderEvent(ofxDatGuiSliderEvent e)
+{
+    if(e.target->is("First DMX Channel"))
+    {
+        guiDmx->getSlider("ch "+ofToString(lastDmxChannel+3))->setLabel("ch "+ofToString(e.value+3));
+        guiDmx->getSlider("ch "+ofToString(lastDmxChannel+3))->setName("ch "+ofToString(e.value+3));
+
+        guiDmx->getSlider("ch "+ofToString(lastDmxChannel+2))->setLabel("ch "+ofToString(e.value+2));
+        guiDmx->getSlider("ch "+ofToString(lastDmxChannel+2))->setName("ch "+ofToString(e.value+2));
+        
+        guiDmx->getSlider("ch "+ofToString(lastDmxChannel+1))->setLabel("ch "+ofToString(e.value+1));
+        guiDmx->getSlider("ch "+ofToString(lastDmxChannel+1))->setName("ch "+ofToString(e.value+1));
+        
+        guiDmx->getSlider("ch "+ofToString(lastDmxChannel))->setLabel("ch "+ofToString(e.value));
+        guiDmx->getSlider("ch "+ofToString(lastDmxChannel))->setName("ch "+ofToString(e.value));
+        
+        lastDmxChannel = e.value;
+    }
+    else
+    {
+        int chToSend = ofToInt(e.target->getName().substr(3,e.target->getName().size()-1));
+        int valueToSend = e.value;
+        cout<<"Send value "<<e.value<<" to dmx Chanel "<<chToSend<<endl;
+        //send dmx value overTCP!
+    }
 }
 
 #pragma mark ---------- System events ----------
@@ -789,7 +834,8 @@ void ofApp::setupGuiScreen()
 {
     // instantiate and position the gui //
     guiScreen = new ofxDatGui();
-    guiScreen->setPosition(guiSlaves->getPosition().x + guiSlaves->getWidth() +10, 10);
+//    guiScreen->setPosition(guiSlaves->getPosition().x + guiSlaves->getWidth() +10, 10);
+    guiScreen->setPosition(guiMaster->getPosition().x, guiMaster->getPosition().y + guiMaster->getHeight()*2);
     
     // adding the optional header allows you to drag the gui around //
     guiScreen->addHeader("SCREEN")->setBackgroundColor(ofColor(127));
@@ -817,7 +863,7 @@ void ofApp::setupGuiVideo()
 {
     // instantiate and position the gui //
     guiVideo = new ofxDatGui();
-    guiVideo->setPosition(guiScreen->getPosition().x + guiScreen->getWidth() +10, 10);
+    guiVideo->setPosition(guiScreen->getPosition().x + guiScreen->getWidth() +10, guiScreen->getPosition().y);
     
     // adding the optional header allows you to drag the gui around //
     guiVideo->addHeader("VIDEO")->setBackgroundColor(ofColor(127));
@@ -860,4 +906,44 @@ void ofApp::setupGuiImage()
     
     guiImage->onButtonEvent(this, &ofApp::onImageButtonEvent);
     guiImage->onTextInputEvent(this, &ofApp::onTextInputEvent);
+}
+
+void ofApp::setupGuiDmx()
+{
+    // GUI DMX
+    //////////////
+    // instantiate and position the gui //
+    guiDmx = new ofxDatGui();
+    guiDmx->setPosition(guiSlaves->getPosition().x + guiSlaves->getWidth() +10, 10);
+    //guiDmx->setWidth(guiVideo->getWidth());
+    
+    // adding the optional header allows you to drag the gui around //
+    guiDmx->addHeader("DMX controls")->setBackgroundColor(ofColor(127));
+    
+    ofColor c = ofColor(ofColor::greenYellow);
+    guiDmx->addLabel("Test");
+//    guiDmx->addButton("Play")->setStripe(c, 5);
+//    guiDmx->addButton("Stop")->setStripe(c, 5);
+//    guiDmx->addTextInput("Load Image", "/test/testImage1.jpg")->setStripe(c, 5);
+//    guiDmx->addTextInput("Load Folder", "test")->setStripe(c, 5);
+    auto slider = guiDmx->addSlider("First DMX Channel", 0, 512, 0);
+    slider -> setStripe(c, 5);
+    slider -> setPrecision(0);
+    lastDmxChannel = 0;
+    slider = guiDmx->addSlider("ch 0", 0, 256, 0);
+    slider -> setStripe(c, 5);
+    slider -> setPrecision(0);
+    slider = guiDmx->addSlider("ch 1", 0, 256, 0);
+    slider -> setStripe(c, 5);
+    slider -> setPrecision(0);
+    slider = guiDmx->addSlider("ch 2", 0, 256, 0);
+    slider -> setStripe(c, 5);
+    slider -> setPrecision(0);
+    slider = guiDmx->addSlider("ch 3", 0, 256, 0);
+    slider -> setStripe(c, 5);
+    slider -> setPrecision(0);
+    
+    
+    guiDmx->onButtonEvent(this, &ofApp::onDmxButtonEvent);
+    guiDmx->onSliderEvent(this, &ofApp::onSliderEvent);
 }
