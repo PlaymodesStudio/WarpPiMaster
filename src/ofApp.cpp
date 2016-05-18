@@ -352,11 +352,14 @@ void ofApp::onImageButtonEvent(ofxDatGuiButtonEvent e)
 //-------------------------------------------------------------------------------
 void ofApp::onDmxButtonEvent(ofxDatGuiButtonEvent e)
 {
-    cout << "onImageButtonEvent: " << e.target->getLabel() << " " << e.target->getEnabled() << endl;
+    cout << "onDmxButtonEvent: " << e.target->getLabel() << " " << e.target->getEnabled() << endl;
     
-    if(e.target->is("play"))
+    if(e.target->is("All chan Test"))
     {
-        sendMessageToSlavesFolder("playImage " + ofToString(guiImage->getSlider("Fade Time")->getValue()));
+        if(e.target->getEnabled())
+            sendMessageToSlavesFolder("setAllDMXCh 255 0");
+        else
+            sendMessageToSlavesFolder("setAllDMXXh 0 0");
     }
     else if(e.target->is("stop"))
     {
@@ -417,7 +420,7 @@ void ofApp::onSliderEvent(ofxDatGuiSliderEvent e)
         int chToSend = ofToInt(e.target->getName().substr(3,e.target->getName().size()-1));
         int valueToSend = e.value;
         cout<<"Send value "<<e.value<<" to dmx Chanel "<<chToSend<<endl;
-        //send dmx value overTCP!
+        sendMessageToSlavesFolder("setDMXCh " + ofToString(chToSend) + " " + ofToString(e.value)+ " 0");
     }
 }
 
@@ -942,6 +945,8 @@ void ofApp::setupGuiDmx()
     slider = guiDmx->addSlider("ch 3", 0, 256, 0);
     slider -> setStripe(c, 5);
     slider -> setPrecision(0);
+    guiDmx->addBreak();
+    guiDmx->addToggle("All Chan Test")->setStripe(c, 5);
     
     
     guiDmx->onButtonEvent(this, &ofApp::onDmxButtonEvent);
