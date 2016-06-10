@@ -39,6 +39,9 @@ void ofApp::setup()
     // GUI DMX
     setupGuiDmx();
     
+    // GUI ARTNET
+    setupGuiArtnet();
+    
     // launch the app //
     mFullscreen = false;
     refreshWindow();
@@ -367,6 +370,27 @@ void ofApp::onDmxButtonEvent(ofxDatGuiButtonEvent e)
     }
 }
 
+//-------------------------------------------------------------------------------
+void ofApp::onArtnetButtonEvent(ofxDatGuiButtonEvent e)
+{
+    if(e.target->is("Play Artnet Video"))
+    {
+        sendMessageToSlavesFolder("playArtnet " + ofToString(0));
+    }
+    else if(e.target->is("Stop Artnet Video"))
+    {
+        sendMessageToSlavesFolder("stopArtnet " + ofToString(0));
+    }
+    else if(e.target->is("Pause Artnet Video"))
+    {
+        sendMessageToSlavesFolder("pauseArtnet " + ofToString(0));
+    }
+    else if(e.target->is("Restart Artnet Video"))
+    {
+        sendMessageToSlavesFolder("restartArtnet " + ofToString(0));
+    }
+}
+
 # pragma mark ---------- Other GUI events ----------
 
 //-------------------------------------------------------------------------------
@@ -380,6 +404,10 @@ void ofApp::onTextInputEvent(ofxDatGuiTextInputEvent e)
     else if(e.target->is("Load Video"))
     {
         sendMessageToSlavesFolder("loadVideo " + e.target->getText() + " " + ofToString(guiVideo->getSlider("Fade Time")->getValue()));
+    }
+    else if(e.target->is("Load Artnet Video"))
+    {
+        sendMessageToSlavesFolder("loadArtnet " + e.target->getText() + " " + ofToString(0));
     }
     else if(e.target->is("Load Image"))
     {
@@ -951,4 +979,27 @@ void ofApp::setupGuiDmx()
     
     guiDmx->onButtonEvent(this, &ofApp::onDmxButtonEvent);
     guiDmx->onSliderEvent(this, &ofApp::onSliderEvent);
+}
+
+void ofApp::setupGuiArtnet()
+{
+    // instantiate and position the gui //
+    guiArtnet = new ofxDatGui();
+    guiArtnet->setPosition(guiVideo->getPosition().x + guiVideo->getWidth() +10, guiVideo->getPosition().y);
+    
+    // adding the optional header allows you to drag the gui around //
+    guiArtnet->addHeader("ArtNet")->setBackgroundColor(ofColor(127));
+    
+    ofColor c = ofColor(255,255,255);
+    guiArtnet->addButton("Play Artnet Video")->setStripe(c, 5);
+    guiArtnet->addButton("Stop Artnet Video")->setStripe(c, 5);
+    guiArtnet->addButton("Pause Artnet Video")->setStripe(c, 5);
+    guiArtnet->addButton("Restart Artnet Video")->setStripe(c, 5);
+    guiArtnet->addTextInput("Load Artnet Video","test.mov")->setStripe(c, 5);
+    
+    
+    
+    // once the gui has been assembled, register callbacks to listen for component specific events //
+    guiArtnet->onButtonEvent(this, &ofApp::onArtnetButtonEvent);
+    guiArtnet->onTextInputEvent(this, &ofApp::onTextInputEvent);
 }

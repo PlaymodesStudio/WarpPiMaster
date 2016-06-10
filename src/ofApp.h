@@ -43,6 +43,7 @@ public:
     void onVideoButtonEvent(ofxDatGuiButtonEvent e);
     void onImageButtonEvent(ofxDatGuiButtonEvent e);
     void onDmxButtonEvent(ofxDatGuiButtonEvent e);
+    void onArtnetButtonEvent(ofxDatGuiButtonEvent e);
 
     
     // GUI
@@ -52,7 +53,7 @@ public:
     ofxDatGui*              guiVideo;
     ofxDatGui*              guiImage;
     ofxDatGui*              guiDmx;
-    ofxDatGui*              guiArtNet;
+    ofxDatGui*              guiArtnet;
     
     void                    setupGuiSlaves();
     void                    setupGuiMaster();
@@ -60,6 +61,7 @@ public:
     void                    setupGuiVideo();
     void                    setupGuiImage();
     void                    setupGuiDmx();
+    void                    setupGuiArtnet();
     int                     lastDmxChannel;
     
     ofxDatGuiFolder*        slavesListFolder;
