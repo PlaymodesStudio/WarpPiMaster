@@ -492,6 +492,8 @@ void ofApp::mouseMoved(int x, int y)
     if(guiScreen->hitTest(ofPoint(x, y)) && !guiScreen->getFocused()) guiScreen->focus();
     if(guiVideo->hitTest(ofPoint(x, y)) && !guiVideo->getFocused()) guiVideo->focus();
     if(guiImage->hitTest(ofPoint(x, y)) && !guiImage->getFocused()) guiImage->focus();
+    if(guiDmx->hitTest(ofPoint(x, y)) && !guiDmx->getFocused()) guiDmx->focus();
+    if(guiArtnet->hitTest(ofPoint(x, y)) && !guiArtnet->getFocused()) guiArtnet->focus();
 }
 
 
