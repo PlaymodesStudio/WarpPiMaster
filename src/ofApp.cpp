@@ -457,7 +457,7 @@ void ofApp::onSliderEvent(ofxDatGuiSliderEvent e)
 void ofApp::keyPressed(int key)
 {
     if (key == 'f') {
-        toggleFullscreen();
+        //toggleFullscreen();
     }
     
     if(guiScreen->getToggle("Edit Quad")->getEnabled()){
