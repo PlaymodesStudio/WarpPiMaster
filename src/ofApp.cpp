@@ -443,6 +443,10 @@ void ofApp::onSliderEvent(ofxDatGuiSliderEvent e)
         
         lastDmxChannel = e.value;
     }
+    else if(e.target->is("Volume"))
+    {
+        sendMessageToSlavesFolder("volume " + ofToString(e.value));
+    }
     else
     {
         int chToSend = ofToInt(e.target->getName().substr(3,e.target->getName().size()-1));
@@ -908,12 +912,14 @@ void ofApp::setupGuiVideo()
     guiVideo->addButton("Restart Video")->setStripe(c, 5);
     guiVideo->addTextInput("Load Video","test.mov")->setStripe(c, 5);
     guiVideo->addSlider("Fade Time", 0, 10);
+    guiVideo->addSlider("Volume", 0, 1)->setValue(1);
     
     guiVideo->addBreak();
     
     // once the gui has been assembled, register callbacks to listen for component specific events //
     guiVideo->onButtonEvent(this, &ofApp::onVideoButtonEvent);
     guiVideo->onTextInputEvent(this, &ofApp::onTextInputEvent);
+    guiVideo->onSliderEvent(this, &ofApp::onSliderEvent);
     
 }
 
